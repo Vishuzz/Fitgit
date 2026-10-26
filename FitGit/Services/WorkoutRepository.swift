@@ -10,6 +10,7 @@ public protocol WorkoutRepositoryProtocol {
     func fetchWorkouts() throws -> [Workout]
     func fetchActiveWorkout() throws -> Workout?
     func createWorkout(name: String, notes: String?) -> Workout
+    func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout
     func addExercise(to workout: Workout, name: String, category: String) -> Exercise
     func addSet(to exercise: Exercise, weight: Double, reps: Int16, rpe: Double?) -> ExerciseSet
     func toggleSetCompletion(_ set: ExerciseSet)
@@ -51,6 +52,31 @@ public final class WorkoutRepository: WorkoutRepositoryProtocol {
         workout.notes = notes
         workout.duration = 0
         workout.totalVolume = 0
+        save()
+        return workout
+    }
+
+    public func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout {
+        let workout = createWorkout(name: template.title, notes: template.subtitle)
+        for (eIndex, tExercise) in template.exercises.enumerated() {
+            let exercise = Exercise(context: context)
+            exercise.id = UUID()
+            exercise.name = tExercise.name
+            exercise.category = tExercise.category
+            exercise.orderIndex = Int16(eIndex)
+            exercise.workout = workout
+
+            for sIndex in 1...tExercise.defaultSetsCount {
+                let set = ExerciseSet(context: context)
+                set.id = UUID()
+                set.setNumber = Int16(sIndex)
+                set.weight = tExercise.targetWeight
+                set.reps = tExercise.targetReps
+                set.isCompleted = false
+                set.restDuration = 60.0
+                set.exercise = exercise
+            }
+        }
         save()
         return workout
     }

@@ -19,106 +19,192 @@ public struct WorkoutListView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Quick Action: Start New Workout Banner
+                    // Weekly Streak & Volume Hero Banner
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("THIS WEEK")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(AppTheme.primaryAccent)
+                            Text("\(viewModel.weeklyCompletedCount) Workouts Completed")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                            Text("\(String(format: "%.0f", viewModel.weeklyTotalVolume)) kg total volume lifted")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        ZStack {
+                            Circle()
+                                .stroke(Color(.systemGray5), lineWidth: 6)
+                            Circle()
+                                .trim(from: 0, to: min(1.0, Double(viewModel.weeklyCompletedCount) / 4.0))
+                                .stroke(AppTheme.blazeGradient, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                            VStack(spacing: 0) {
+                                Text("\(viewModel.weeklyCompletedCount)")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                Text("/4")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .frame(width: 54, height: 54)
+                    }
+                    .padding(16)
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+                    .padding(.horizontal)
+
+                    // Active Workout Sticky Resume Card (if in progress)
+                    if let active = viewModel.activeWorkout {
+                        Button {
+                            HapticManager.medium()
+                            activeWorkoutToPresent = active
+                        } label: {
+                            HStack {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.orange.opacity(0.15))
+                                        .frame(width: 44, height: 44)
+                                    Image(systemName: "timer")
+                                        .font(.headline)
+                                        .foregroundStyle(.orange)
+                                }
+
+                                VStack(alignment: .leading, spacing: 3) {
+                                    HStack {
+                                        Text("CURRENT WORKOUT")
+                                            .font(.caption2)
+                                            .fontWeight(.bold)
+                                            .foregroundStyle(.orange)
+                                        Spacer()
+                                        Text("RESUME")
+                                            .font(.caption)
+                                            .fontWeight(.bold)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 4)
+                                            .background(Color.orange)
+                                            .foregroundStyle(.white)
+                                            .clipShape(Capsule())
+                                    }
+                                    Text(active.unwrappedName)
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                    Text("\(active.completedSetsCount) of \(active.totalSetsCount) sets completed")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .padding(14)
+                            .background(Color.orange.opacity(0.08))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(Color.orange.opacity(0.35), lineWidth: 1.5)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                        }
+                        .padding(.horizontal)
+                    }
+
+                    // Start Empty Workout Hero Button
                     Button {
+                        HapticManager.medium()
                         showingNamePrompt = true
                     } label: {
                         HStack(spacing: 14) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.accentColor.opacity(0.15))
+                                    .fill(Color.white.opacity(0.2))
                                     .frame(width: 44, height: 44)
                                 Image(systemName: "plus")
                                     .font(.headline)
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(.white)
                             }
+
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Start Empty Workout")
                                     .font(.headline)
-                                    .foregroundStyle(.primary)
-                                Text("Log exercises and sets on the fly")
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.white)
+                                Text("Build your session set-by-set")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.white.opacity(0.85))
                             }
+
                             Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
+
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(.white)
                         }
                         .padding(14)
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+                        .background(AppTheme.blazeGradient)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        .shadow(color: AppTheme.primaryAccent.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .padding(.horizontal)
 
-                    // Active Workout Sticky Resume Card (if one is ongoing)
-                    if let active = viewModel.activeWorkout {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("CURRENT SESSION")
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.orange)
-                                .padding(.horizontal)
-
-                            Button {
-                                activeWorkoutToPresent = active
-                            } label: {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(active.unwrappedName)
-                                            .font(.headline)
-                                            .foregroundStyle(.primary)
-                                        Text("Started \(active.unwrappedStartDate.formatted(date: .omitted, time: .shortened)) • \(active.completedSetsCount) sets completed")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    Spacer()
-                                    Text("Resume")
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .padding(.horizontal, 14)
-                                        .padding(.vertical, 8)
-                                        .background(Color.orange)
-                                        .foregroundStyle(.white)
-                                        .clipShape(Capsule())
-                                }
-                                .padding(14)
-                                .background(Color.orange.opacity(0.08))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(Color.orange.opacity(0.3), lineWidth: 1)
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
-                            }
-                            .padding(.horizontal)
-                        }
+                    // Routine Templates Carousel
+                    RoutineTemplateCarouselView { template in
+                        let created = viewModel.startWorkoutFromTemplate(template)
+                        activeWorkoutToPresent = created
                     }
 
-                    // Workout History Section
+                    // Workouts Filter & Search Section
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Workout History")
+                            Text("History")
                                 .font(.title3)
                                 .fontWeight(.bold)
                             Spacer()
-                            Text("\(viewModel.workouts.count) total")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+
+                            // Filter Picker
+                            Picker("Filter", selection: $viewModel.selectedFilter) {
+                                ForEach(WorkoutFilter.allCases) { filter in
+                                    Text(filter.rawValue).tag(filter)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(maxWidth: 220)
                         }
                         .padding(.horizontal)
 
-                        if viewModel.workouts.isEmpty {
+                        // Search Bar
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(.secondary)
+                            TextField("Search workouts or exercises...", text: $viewModel.searchText)
+                            if !viewModel.searchText.isEmpty {
+                                Button {
+                                    viewModel.searchText = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .padding(10)
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal)
+
+                        // Workouts List
+                        if viewModel.filteredWorkouts.isEmpty {
                             VStack(spacing: 12) {
-                                Image(systemName: "figure.run.circle")
-                                    .font(.system(size: 48))
-                                    .foregroundStyle(.secondary.opacity(0.5))
-                                    .padding(.top, 30)
-                                Text("No workouts logged yet")
+                                Image(systemName: "figure.strengthtraining.traditional")
+                                    .font(.system(size: 44))
+                                    .foregroundStyle(.secondary.opacity(0.4))
+                                    .padding(.top, 24)
+                                Text("No workouts found")
                                     .font(.headline)
                                     .foregroundStyle(.secondary)
-                                Text("Your completed workouts and training metrics will show up here.")
-                                    .font(.subheadline)
+                                Text("Start a workout above to log your lifts and track your strength.")
+                                    .font(.caption)
                                     .foregroundStyle(.tertiary)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 32)
@@ -127,7 +213,7 @@ public struct WorkoutListView: View {
                             .padding(.vertical, 20)
                         } else {
                             LazyVStack(spacing: 12) {
-                                ForEach(viewModel.workouts) { workout in
+                                ForEach(viewModel.filteredWorkouts) { workout in
                                     NavigationLink {
                                         WorkoutDetailView(workout: workout)
                                     } label: {
@@ -150,22 +236,13 @@ public struct WorkoutListView: View {
                 .padding(.vertical)
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Workouts")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showingNamePrompt = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
+            .navigationTitle("FitGit")
             .refreshable {
                 viewModel.loadWorkouts()
             }
-            .alert("New Workout", isPresented: $showingNamePrompt) {
-                TextField("Workout Name (e.g. Chest & Triceps)", text: $newWorkoutTitle)
-                Button("Start") {
+            .alert("Start New Workout", isPresented: $showingNamePrompt) {
+                TextField("Workout Name (e.g. Chest & Shoulders)", text: $newWorkoutTitle)
+                Button("Start Training") {
                     let created = viewModel.startNewWorkout(name: newWorkoutTitle)
                     newWorkoutTitle = ""
                     activeWorkoutToPresent = created
@@ -173,8 +250,6 @@ public struct WorkoutListView: View {
                 Button("Cancel", role: .cancel) {
                     newWorkoutTitle = ""
                 }
-            } message: {
-                Text("Give your workout a name or leave blank for a default timestamp.")
             }
             .fullScreenCover(item: $activeWorkoutToPresent) { workout in
                 ActiveWorkoutView(workout: workout)
