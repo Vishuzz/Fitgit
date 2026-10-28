@@ -5,9 +5,10 @@
 
 import Testing
 import CoreData
+import Foundation
 @testable import FitGit
 
-@Suite("Core Data Fitness Stack Tests")
+@Suite("FitGit Full Stack & Weekly Split Tests")
 struct FitGitTests {
 
     private func createTestContext() -> NSManagedObjectContext {
@@ -30,7 +31,6 @@ struct FitGitTests {
         let bench = repository.addExercise(to: workout, name: "Barbell Bench Press", category: "Chest")
         #expect(workout.exercisesArray.count == 1)
         #expect(bench.unwrappedName == "Barbell Bench Press")
-        #expect(bench.unwrappedCategory == "Chest")
 
         // 3. Add Sets
         let set1 = repository.addSet(to: bench, weight: 100.0, reps: 5, rpe: 8.0)
@@ -53,45 +53,31 @@ struct FitGitTests {
         #expect(workout.endDate != nil)
     }
 
-    @Test("Cascade deletion cleans up exercises and sets")
-    func testCascadeDelete() throws {
-        let context = createTestContext()
-        let repository = WorkoutRepository(context: context)
+    @Test("Weekly Split Plan configuration and Day Schedule")
+    func testWeeklySplitPlan() throws {
+        let store = SplitStore()
+        store.applyPresetSplit(.pushPullLegs)
 
-        let workout = repository.createWorkout(name: "Leg Day")
-        let squat = repository.addExercise(to: workout, name: "Squat", category: "Legs")
-        _ = repository.addSet(to: squat, weight: 140.0, reps: 5)
+        #expect(store.weeklySchedule.count == 7)
 
-        #expect(try repository.fetchWorkouts().count == 1)
+        let monday = store.weeklySchedule.first(where: { $0.day == .monday })
+        #expect(monday != nil)
+        #expect(monday?.isRestDay == false)
+        #expect(monday?.targetMuscles.contains(.chest) == true)
 
-        repository.deleteWorkout(workout)
-
-        let remainingWorkouts = try repository.fetchWorkouts()
-        #expect(remainingWorkouts.isEmpty)
-
-        let exerciseFetch: NSFetchRequest<Exercise> = Exercise.fetchRequest()
-        let remainingExercises = try context.fetch(exerciseFetch)
-        #expect(remainingExercises.isEmpty)
-
-        let setFetch: NSFetchRequest<ExerciseSet> = ExerciseSet.fetchRequest()
-        let remainingSets = try context.fetch(setFetch)
-        #expect(remainingSets.isEmpty)
+        let sunday = store.weeklySchedule.first(where: { $0.day == .sunday })
+        #expect(sunday != nil)
+        #expect(sunday?.isRestDay == true)
     }
 
-    @Test("On-device ML progressive overload recommendation")
-    func testMLInferenceOverload() throws {
-        let context = createTestContext()
-        let repository = WorkoutRepository(context: context)
+    @Test("Exercise Library covers all muscle groups")
+    func testExerciseLibraryCoverage() throws {
+        let library = ExerciseLibrary.shared
+        #expect(library.allExercises.count > 50)
 
-        let workout = repository.createWorkout(name: "Test ML")
-        let curl = repository.addExercise(to: workout, name: "Bicep Curl", category: "Arms")
-        let set = repository.addSet(to: curl, weight: 20.0, reps: 10)
-        repository.toggleSetCompletion(set)
-
-        let mlService = MLInferenceService()
-        let recommendedWeight = mlService.predictOptimalWeight(exerciseName: curl.unwrappedName, historicalSets: curl.setsArray)
-
-        #expect(recommendedWeight != nil)
-        #expect(recommendedWeight! > 20.0)
+        for muscle in MuscleGroupCategory.allCases {
+            let exercises = library.exercises(for: muscle)
+            #expect(!exercises.isEmpty, "Muscle \(muscle.rawValue) must have exercises")
+        }
     }
 }

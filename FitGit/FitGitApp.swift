@@ -10,6 +10,11 @@ import CoreData
 struct FitGitApp: App {
     let persistenceController = PersistenceController.shared
 
+    init() {
+        // Request or check local notification permissions on app launch
+        NotificationManager.shared.checkAuthorization()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
