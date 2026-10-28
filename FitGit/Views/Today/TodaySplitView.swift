@@ -297,10 +297,10 @@ public struct TodaySplitView: View {
 
                                                 Spacer()
 
-                                                Text("3×10")
+                                                Text("\(exercise.targetSets) × \(exercise.targetRepsRange)")
                                                     .font(.caption)
                                                     .fontWeight(.bold)
-                                                    .foregroundStyle(NeumorphicTheme.textSecondary)
+                                                    .foregroundStyle(NeumorphicTheme.primaryOrange)
                                                     .padding(.horizontal, 8)
                                                     .padding(.vertical, 4)
                                                     .background(NeumorphicTheme.darkSurface)

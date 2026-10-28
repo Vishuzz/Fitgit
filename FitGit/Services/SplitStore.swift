@@ -9,7 +9,7 @@ import Combine
 public final class SplitStore: ObservableObject {
     public static let shared = SplitStore()
 
-    private let storageKey = "fitgit_saved_weekly_split_v3"
+    private let storageKey = "fitgit_saved_weekly_split_v5"
     private let customRoutinesKey = "fitgit_saved_custom_routines_v1"
 
     @Published public var weeklySchedule: [DayWorkoutConfig] = []
@@ -45,7 +45,7 @@ public final class SplitStore: ObservableObject {
            decoded.count == 7 {
             self.weeklySchedule = decoded
         } else {
-            // Default to Push Pull Legs (PPL) split with leg exercise pairings
+            // Default to Push-Pull-Legs (PPL) program from the complete workout splits guide
             applyPresetSplit(.pushPullLegs)
         }
     }
@@ -76,16 +76,28 @@ public final class SplitStore: ObservableObject {
         } else {
             self.customRoutines = [
                 CustomRoutine(
-                    title: "Chest & Tricep Hypertrophy",
+                    title: "Chest & Triceps Hypertrophy",
                     subtitle: "Heavy press & cable burn",
                     targetMuscles: [.chest, .triceps],
-                    exercises: Array(ExerciseLibrary.shared.exercises(for: .chest).prefix(3)) + Array(ExerciseLibrary.shared.exercises(for: .triceps).prefix(2))
+                    exercises: [
+                        PDFExerciseFactory.barbellBenchPress(sets: 3, reps: "6-8"),
+                        PDFExerciseFactory.inclineDumbbellPress(sets: 3, reps: "8-12"),
+                        PDFExerciseFactory.pecDeckCableFly(sets: 2, reps: "12-15"),
+                        PDFExerciseFactory.tricepsRopePushdown(sets: 3, reps: "10-15"),
+                        PDFExerciseFactory.overheadCableTricepsExtension(sets: 2, reps: "10-15")
+                    ]
                 ),
                 CustomRoutine(
-                    title: "Back & Bicep Pull",
-                    subtitle: "Lats, deadlifts & peak biceps",
+                    title: "Back & Biceps Pull",
+                    subtitle: "Lats, rows & peak arm contractions",
                     targetMuscles: [.back, .biceps],
-                    exercises: Array(ExerciseLibrary.shared.exercises(for: .back).prefix(3)) + Array(ExerciseLibrary.shared.exercises(for: .biceps).prefix(2))
+                    exercises: [
+                        PDFExerciseFactory.pullUpsLatPulldown(sets: 3, reps: "8-12"),
+                        PDFExerciseFactory.chestSupportedRow(sets: 3, reps: "8-12"),
+                        PDFExerciseFactory.straightArmPulldown(sets: 2, reps: "12-15"),
+                        PDFExerciseFactory.ezBarCurl(sets: 3, reps: "8-12"),
+                        PDFExerciseFactory.inclineDumbbellCurl(sets: 2, reps: "10-15")
+                    ]
                 )
             ]
         }
@@ -93,71 +105,27 @@ public final class SplitStore: ObservableObject {
 
     // MARK: - Preset Split Templates
     public enum PresetSplitType: String, CaseIterable, Identifiable {
-        case pushPullLegs = "Push Pull Legs (PPL)"
-        case arnoldSplit = "Arnold Split (Chest/Back, Shoulders/Arms, Legs)"
-        case upperLower = "Upper / Lower (4-Day)"
-        case broSplit = "Classic Bro Split (5-Day)"
-        case fullBody = "Full Body (3-Day)"
+        case pushPullLegs = "Push-Pull-Legs (PPL) - 6 Days"
+        case arnoldSplit = "Arnold Split - 6 Days"
+        case upperLower = "Upper/Lower Split - 4 Days"
+        case broSplit = "Classic Bro Split - 5 Days"
+        case fullBody = "Full Body - 3 Days"
 
         public var id: String { rawValue }
+
+        public var subtitle: String {
+            switch self {
+            case .pushPullLegs: return "3 or 6 days • Balanced strength and hypertrophy"
+            case .arnoldSplit: return "6 days • Bodybuilding with extra arm/shoulder focus"
+            case .upperLower: return "4 days • Balanced growth and recovery"
+            case .broSplit: return "5 days • Focused single-muscle sessions"
+            case .fullBody: return "3 days • Efficient training with frequent muscle stimulation"
+            }
+        }
     }
 
     public func applyPresetSplit(_ type: PresetSplitType) {
-        let calendar = Calendar.current
-        let defaultTime = calendar.date(bySettingHour: 18, minute: 30, second: 0, of: Date()) ?? Date()
-
-        switch type {
-        case .pushPullLegs:
-            weeklySchedule = [
-                DayWorkoutConfig(day: .monday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .shoulders, .triceps], routineTitle: "Push Day A"),
-                DayWorkoutConfig(day: .tuesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.back, .biceps, .forearms], routineTitle: "Pull Day A"),
-                DayWorkoutConfig(day: .wednesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day A (Compounds)", customExercises: LegExercisePairing.day1Exercises),
-                DayWorkoutConfig(day: .thursday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .shoulders, .triceps], routineTitle: "Push Day B"),
-                DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.back, .biceps], routineTitle: "Pull Day B"),
-                DayWorkoutConfig(day: .saturday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day B (Alternatives)", customExercises: LegExercisePairing.day2AlternativeExercises),
-                DayWorkoutConfig(day: .sunday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest & Recovery")
-            ]
-        case .arnoldSplit:
-            weeklySchedule = [
-                DayWorkoutConfig(day: .monday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .back], routineTitle: "Chest & Back"),
-                DayWorkoutConfig(day: .tuesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.shoulders, .biceps, .triceps, .forearms], routineTitle: "Shoulders & Arms"),
-                DayWorkoutConfig(day: .wednesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day 1", customExercises: LegExercisePairing.day1Exercises),
-                DayWorkoutConfig(day: .thursday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .back], routineTitle: "Chest & Back"),
-                DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.shoulders, .biceps, .triceps], routineTitle: "Shoulders & Arms"),
-                DayWorkoutConfig(day: .saturday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day 2 (Alternative)", customExercises: LegExercisePairing.day2AlternativeExercises),
-                DayWorkoutConfig(day: .sunday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day")
-            ]
-        case .upperLower:
-            weeklySchedule = [
-                DayWorkoutConfig(day: .monday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .back, .shoulders, .biceps, .triceps], routineTitle: "Upper Body Power"),
-                DayWorkoutConfig(day: .tuesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Lower Body 1", customExercises: LegExercisePairing.day1Exercises),
-                DayWorkoutConfig(day: .wednesday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Active Recovery"),
-                DayWorkoutConfig(day: .thursday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .back, .shoulders, .biceps, .triceps], routineTitle: "Upper Body Hypertrophy"),
-                DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Lower Body 2 (Alternative)", customExercises: LegExercisePairing.day2AlternativeExercises),
-                DayWorkoutConfig(day: .saturday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day"),
-                DayWorkoutConfig(day: .sunday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day")
-            ]
-        case .broSplit:
-            weeklySchedule = [
-                DayWorkoutConfig(day: .monday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest], routineTitle: "Chest Day"),
-                DayWorkoutConfig(day: .tuesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.back], routineTitle: "Back Day"),
-                DayWorkoutConfig(day: .wednesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.shoulders, .core], routineTitle: "Shoulders & Abs"),
-                DayWorkoutConfig(day: .thursday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day", customExercises: LegExercisePairing.day1Exercises),
-                DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.biceps, .triceps, .forearms], routineTitle: "Arm Farm"),
-                DayWorkoutConfig(day: .saturday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.core, .cardio], routineTitle: "Cardio & Core"),
-                DayWorkoutConfig(day: .sunday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest & Eat")
-            ]
-        case .fullBody:
-            weeklySchedule = [
-                DayWorkoutConfig(day: .monday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .back, .quads, .shoulders], routineTitle: "Full Body A"),
-                DayWorkoutConfig(day: .tuesday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day"),
-                DayWorkoutConfig(day: .wednesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.back, .hamstrings, .chest, .biceps, .triceps], routineTitle: "Full Body B"),
-                DayWorkoutConfig(day: .thursday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day"),
-                DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .chest, .back, .core], routineTitle: "Full Body C"),
-                DayWorkoutConfig(day: .saturday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day"),
-                DayWorkoutConfig(day: .sunday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day")
-            ]
-        }
+        weeklySchedule = PDFWorkoutSplits.schedule(for: type)
         saveSchedule()
         NotificationManager.shared.scheduleAllReminders(for: weeklySchedule)
     }

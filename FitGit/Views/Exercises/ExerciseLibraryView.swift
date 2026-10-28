@@ -252,11 +252,33 @@ private struct ExerciseDetailModal: View {
                                 .fontWeight(.bold)
                         }
 
+                        HStack {
+                            Text("Target Working Sets:")
+                                .font(.subheadline)
+                                .foregroundStyle(NeumorphicTheme.textSecondary)
+                            Spacer()
+                            Text("\(exercise.targetSets) sets")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundStyle(NeumorphicTheme.primaryOrange)
+                        }
+
+                        HStack {
+                            Text("Target Rep Range:")
+                                .font(.subheadline)
+                                .foregroundStyle(NeumorphicTheme.textSecondary)
+                            Spacer()
+                            Text(exercise.targetRepsRange)
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundStyle(NeumorphicTheme.cyanPulse)
+                        }
+
                         if !exercise.secondaryMuscles.isEmpty {
                             HStack {
                                 Text("Secondary Muscles:")
-                                    .font(.subheadline)
-                                    .foregroundStyle(NeumorphicTheme.textSecondary)
+                                .font(.subheadline)
+                                .foregroundStyle(NeumorphicTheme.textSecondary)
                                 Spacer()
                                 Text(exercise.secondaryMuscles.joined(separator: ", "))
                                     .font(.subheadline)

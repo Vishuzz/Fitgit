@@ -314,11 +314,13 @@ private struct PresetSplitsSheet: View {
     @Environment(\.dismiss) private var dismiss
     let onSelect: (SplitStore.PresetSplitType) -> Void
 
+    @State private var selectedDetailPreset: SplitStore.PresetSplitType? = nil
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    Text("Select a proven workout split template to populate your entire weekly schedule instantly.")
+                    Text("Select a split program from the Complete Gym Workout Splits Guide. Every split includes full day-wise exercise lists, sets, and rep ranges.")
                         .font(.caption)
                         .foregroundStyle(NeumorphicTheme.textSecondary)
                         .padding(.horizontal)
@@ -326,7 +328,7 @@ private struct PresetSplitsSheet: View {
 
                     ForEach(SplitStore.PresetSplitType.allCases) { preset in
                         Button {
-                            onSelect(preset)
+                            selectedDetailPreset = preset
                         } label: {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
@@ -334,12 +336,13 @@ private struct PresetSplitsSheet: View {
                                         .font(.headline)
                                         .foregroundStyle(NeumorphicTheme.textPrimary)
                                     Spacer()
-                                    Image(systemName: "arrow.right.circle.fill")
+                                    Image(systemName: "chevron.right.circle.fill")
                                         .foregroundStyle(NeumorphicTheme.primaryOrange)
                                 }
 
-                                Text(description(for: preset))
+                                Text(preset.subtitle)
                                     .font(.caption)
+                                    .fontWeight(.medium)
                                     .foregroundStyle(NeumorphicTheme.textSecondary)
                             }
                             .padding(16)
@@ -357,23 +360,16 @@ private struct PresetSplitsSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
+                        .foregroundStyle(NeumorphicTheme.textPrimary)
                 }
             }
-        }
-    }
-
-    private func description(for preset: SplitStore.PresetSplitType) -> String {
-        switch preset {
-        case .pushPullLegs:
-            return "6-day classic: Push (Chest/Shoulders/Triceps), Pull (Back/Biceps), Legs/Core, repeated twice."
-        case .arnoldSplit:
-            return "6-day high volume antagonist split: Chest/Back, Shoulders/Arms, Legs, repeated twice."
-        case .upperLower:
-            return "4-day power & hypertrophy split: Upper Body, Lower Body, Rest, Upper, Lower, Rest, Rest."
-        case .broSplit:
-            return "5-day dedicated muscle focus: Chest, Back, Shoulders, Legs, Arms, Cardio/Rest."
-        case .fullBody:
-            return "3-day high-frequency full body compound sessions with alternating rest days."
+            .sheet(item: $selectedDetailPreset) { preset in
+                SplitProgramDetailSheet(preset: preset) {
+                    onSelect(preset)
+                    selectedDetailPreset = nil
+                    dismiss()
+                }
+            }
         }
     }
 }

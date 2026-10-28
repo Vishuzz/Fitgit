@@ -11,6 +11,8 @@ public struct RoutinesView: View {
     @State private var routineToAssign: CustomRoutine?
     @State private var showingAssignSheet: Bool = false
 
+    @State private var selectedPresetForDetail: SplitStore.PresetSplitType? = nil
+
     public init() {}
 
     public var body: some View {
@@ -88,31 +90,36 @@ public struct RoutinesView: View {
                         }
                     }
 
-                    // Built-in Split Routine Templates
+                    // Built-in Split Routine Templates from PDF
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("Standard Split Templates")
-                            .font(.headline)
-                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                            .padding(.horizontal)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Complete Gym Splits (PDF Guide)")
+                                .font(.headline)
+                                .foregroundStyle(NeumorphicTheme.textPrimary)
+                            Text("Day-by-day programs with exercises, working sets & rep ranges")
+                                .font(.caption2)
+                                .foregroundStyle(NeumorphicTheme.textMuted)
+                        }
+                        .padding(.horizontal)
 
                         ForEach(SplitStore.PresetSplitType.allCases) { preset in
                             Button {
-                                splitStore.applyPresetSplit(preset)
+                                selectedPresetForDetail = preset
                             } label: {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 14) {
+                                    VStack(alignment: .leading, spacing: 6) {
                                         Text(preset.rawValue)
                                             .font(.subheadline)
                                             .fontWeight(.bold)
                                             .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("Tap to apply to weekly schedule")
+                                        Text(preset.subtitle)
                                             .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textMuted)
+                                            .foregroundStyle(NeumorphicTheme.textSecondary)
                                     }
                                     Spacer()
-                                    Image(systemName: "arrow.up.right.circle.fill")
+                                    Image(systemName: "chevron.right.circle.fill")
                                         .font(.title3)
-                                        .foregroundStyle(NeumorphicTheme.cyanPulse)
+                                        .foregroundStyle(NeumorphicTheme.primaryOrange)
                                 }
                                 .padding(16)
                             }
@@ -141,6 +148,11 @@ public struct RoutinesView: View {
                         }
                         showingAssignSheet = false
                     }
+                }
+            }
+            .sheet(item: $selectedPresetForDetail) { preset in
+                SplitProgramDetailSheet(preset: preset) {
+                    splitStore.applyPresetSplit(preset)
                 }
             }
         }

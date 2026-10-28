@@ -64,6 +64,8 @@ public struct ExerciseItem: Identifiable, Codable, Hashable {
     public let equipment: String
     public let instructions: String
     public var isCustom: Bool
+    public var targetSets: Int
+    public var targetRepsRange: String
 
     public init(
         id: UUID = UUID(),
@@ -72,7 +74,9 @@ public struct ExerciseItem: Identifiable, Codable, Hashable {
         secondaryMuscles: [String] = [],
         equipment: String = "Barbell",
         instructions: String = "",
-        isCustom: Bool = false
+        isCustom: Bool = false,
+        targetSets: Int = 3,
+        targetRepsRange: String = "8-12"
     ) {
         self.id = id
         self.name = name
@@ -81,6 +85,21 @@ public struct ExerciseItem: Identifiable, Codable, Hashable {
         self.equipment = equipment
         self.instructions = instructions
         self.isCustom = isCustom
+        self.targetSets = targetSets
+        self.targetRepsRange = targetRepsRange
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        name = try container.decode(String.self, forKey: .name)
+        primaryMuscle = try container.decode(MuscleGroupCategory.self, forKey: .primaryMuscle)
+        secondaryMuscles = try container.decodeIfPresent([String].self, forKey: .secondaryMuscles) ?? []
+        equipment = try container.decodeIfPresent(String.self, forKey: .equipment) ?? "Barbell"
+        instructions = try container.decodeIfPresent(String.self, forKey: .instructions) ?? ""
+        isCustom = try container.decodeIfPresent(Bool.self, forKey: .isCustom) ?? false
+        targetSets = try container.decodeIfPresent(Int.self, forKey: .targetSets) ?? 3
+        targetRepsRange = try container.decodeIfPresent(String.self, forKey: .targetRepsRange) ?? "8-12"
     }
 }
 
@@ -193,43 +212,51 @@ public final class ExerciseLibrary {
 // MARK: - Leg Day Exercise & Alternative Pairings
 public enum LegExercisePairing {
     public static var squat: ExerciseItem {
-        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Barbell Back Squat" }) ??
-        ExerciseItem(name: "Barbell Back Squat", primaryMuscle: .quads, equipment: "Barbell")
+        PDFExerciseFactory.barbellSquat(sets: 3, reps: "6-10")
+    }
+
+    public static var hackSquat: ExerciseItem {
+        PDFExerciseFactory.hackSquatOrSquat(sets: 3, reps: "8-12")
     }
 
     public static var legExtension: ExerciseItem {
-        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Leg Extension Machine" }) ??
-        ExerciseItem(name: "Leg Extension Machine", primaryMuscle: .quads, equipment: "Machine")
+        PDFExerciseFactory.legExtension(sets: 2, reps: "12-15")
     }
 
     public static var rdl: ExerciseItem {
-        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Romanian Deadlift (RDL)" }) ??
-        ExerciseItem(name: "Romanian Deadlift (RDL)", primaryMuscle: .hamstrings, equipment: "Barbell")
+        PDFExerciseFactory.romanianDeadlift(sets: 3, reps: "8-10")
+    }
+
+    public static var bulgarianSplitSquat: ExerciseItem {
+        PDFExerciseFactory.bulgarianSplitSquat(sets: 2, reps: "8-12 per leg")
     }
 
     public static var legCurl: ExerciseItem {
-        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Lying Leg Curl Machine" }) ??
-        ExerciseItem(name: "Lying Leg Curl Machine", primaryMuscle: .hamstrings, equipment: "Machine")
+        PDFExerciseFactory.seatedLegCurl(sets: 3, reps: "10-15")
     }
 
     public static var hipThrust: ExerciseItem {
-        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Barbell Hip Thrust" }) ??
-        ExerciseItem(name: "Barbell Hip Thrust", primaryMuscle: .glutes, equipment: "Barbell")
+        PDFExerciseFactory.hipThrust(sets: 2, reps: "8-12")
     }
 
     public static var gluteKickback: ExerciseItem {
-        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Cable Glute Kickbacks" }) ??
-        ExerciseItem(name: "Cable Glute Kickbacks", primaryMuscle: .glutes, equipment: "Cable")
+        ExerciseItem(name: "Cable Glute Kickbacks", primaryMuscle: .glutes, equipment: "Cable", targetSets: 3, targetRepsRange: "12-15")
     }
 
     public static var standingCalf: ExerciseItem {
-        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Standing Calf Raise" }) ??
-        ExerciseItem(name: "Standing Calf Raise", primaryMuscle: .calves, equipment: "Machine")
+        PDFExerciseFactory.standingCalfRaises(sets: 3, reps: "12-20")
     }
 
     public static var seatedCalf: ExerciseItem {
-        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Seated Calf Raise" }) ??
-        ExerciseItem(name: "Seated Calf Raise", primaryMuscle: .calves, equipment: "Machine")
+        PDFExerciseFactory.seatedCalfRaises(sets: 3, reps: "12-20")
+    }
+
+    public static var hangingKneeRaises: ExerciseItem {
+        PDFExerciseFactory.hangingKneeRaises(sets: 3, reps: "10-15")
+    }
+
+    public static var cableCrunches: ExerciseItem {
+        PDFExerciseFactory.cableCrunches(sets: 3, reps: "12-15")
     }
 
     /// Primary Leg Day exercises (1 per muscle: Squat, RDL, Hip Thrust, Standing Calf)
@@ -237,14 +264,30 @@ public enum LegExercisePairing {
         [squat, rdl, hipThrust, standingCalf]
     }
 
-    /// Alternative Leg Day exercises (1 per muscle: Leg Extension, Leg Curl, Glute Kickbacks, Seated Calf)
+    /// Alternative Leg Day exercises (1 per muscle: Hack Squat / Leg Ext, Bulgarian / Leg Curl, Seated Calf)
     public static var day2AlternativeExercises: [ExerciseItem] {
-        [legExtension, legCurl, gluteKickback, seatedCalf]
+        [hackSquat, bulgarianSplitSquat, legCurl, seatedCalf]
     }
 
     /// Returns the paired alternative exercise for the opposite leg day
     public static func alternative(for exercise: ExerciseItem) -> ExerciseItem? {
         switch exercise.name {
+        // PDF Exercises
+        case "Barbell squat": return hackSquat
+        case "Hack squat or squat": return squat
+        case "Hack squat": return squat
+        case "Romanian deadlift": return bulgarianSplitSquat
+        case "Bulgarian split squat": return rdl
+        case "Leg press": return hackSquat
+        case "Seated leg curl": return legCurl
+        case "Lying leg curl": return legCurl
+        case "Leg extension": return hackSquat
+        case "Standing calf raises": return seatedCalf
+        case "Seated calf raises": return standingCalf
+        case "Hanging knee raises": return cableCrunches
+        case "Cable crunches": return hangingKneeRaises
+
+        // Legacy / Standard names
         case "Barbell Back Squat": return legExtension
         case "Leg Extension Machine": return squat
         case "Romanian Deadlift (RDL)": return legCurl
