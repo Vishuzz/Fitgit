@@ -8,7 +8,6 @@ import SwiftUI
 public enum MainTab: String, CaseIterable, Identifiable {
     case today = "Today"
     case split = "Split"
-    case routines = "Routines"
     case exercises = "Exercises"
     case settings = "Settings"
 
@@ -18,7 +17,6 @@ public enum MainTab: String, CaseIterable, Identifiable {
         switch self {
         case .today: return "flame.fill"
         case .split: return "calendar.badge.clock"
-        case .routines: return "square.stack.3d.up.fill"
         case .exercises: return "dumbbell.fill"
         case .settings: return "gearshape.fill"
         }
@@ -39,8 +37,6 @@ public struct MainTabView: View {
                     TodaySplitView()
                 case .split:
                     WeeklySplitPlannerView()
-                case .routines:
-                    RoutinesView()
                 case .exercises:
                     ExerciseLibraryView()
                 case .settings:
