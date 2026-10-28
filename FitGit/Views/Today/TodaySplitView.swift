@@ -11,21 +11,62 @@ public struct TodaySplitView: View {
 
     @State private var checkedExerciseIds: Set<UUID> = []
     @State private var showingTestNotificationAlert: Bool = false
+    @State private var overriddenExercises: [ExerciseItem]? = nil
 
     private var todayConfig: DayWorkoutConfig {
         splitStore.todayConfig
     }
 
+    /// Determines other leg day in the weekly schedule (e.g., Saturday if today is Wednesday, or Wednesday if today is Saturday)
+    private var otherLegDay: DayOfWeek? {
+        let otherDays = splitStore.weeklySchedule.filter {
+            $0.day != todayConfig.day && !$0.isRestDay && $0.targetMuscles.contains(.quads)
+        }
+        return otherDays.first?.day
+    }
+
+    private var isSecondLegDayOfWeek: Bool {
+        todayConfig.day == .saturday || todayConfig.day == .friday
+    }
+
     private var exercisesForToday: [ExerciseItem] {
+        if let overridden = overriddenExercises {
+            return overridden
+        }
+
         if !todayConfig.customExercises.isEmpty {
             return todayConfig.customExercises
         }
-        // Fall back to exercises matching today's target muscles
+
+        // Generate dynamically with strictly ONE exercise per leg muscle,
+        // and alternative on the other leg day
         var list: [ExerciseItem] = []
         for muscle in todayConfig.targetMuscles {
-            list.append(contentsOf: ExerciseLibrary.shared.exercises(for: muscle).prefix(2))
+            switch muscle {
+            case .quads:
+                list.append(isSecondLegDayOfWeek ? LegExercisePairing.legExtension : LegExercisePairing.squat)
+            case .hamstrings:
+                list.append(isSecondLegDayOfWeek ? LegExercisePairing.legCurl : LegExercisePairing.rdl)
+            case .glutes:
+                list.append(isSecondLegDayOfWeek ? LegExercisePairing.gluteKickback : LegExercisePairing.hipThrust)
+            case .calves:
+                list.append(isSecondLegDayOfWeek ? LegExercisePairing.seatedCalf : LegExercisePairing.standingCalf)
+            default:
+                if let ex = ExerciseLibrary.shared.exercises(for: muscle).first {
+                    list.append(ex)
+                }
+            }
         }
         return list
+    }
+
+    private func swapExercise(_ current: ExerciseItem, with alternative: ExerciseItem) {
+        var currentList = exercisesForToday
+        if let index = currentList.firstIndex(where: { $0.id == current.id }) {
+            currentList[index] = alternative
+            overriddenExercises = currentList
+            HapticManager.light()
+        }
     }
 
     public init() {}
@@ -203,68 +244,105 @@ public struct TodaySplitView: View {
                                     .foregroundStyle(NeumorphicTheme.textMuted)
                                     .padding(.vertical, 12)
                             } else {
-                                VStack(spacing: 12) {
+                                VStack(spacing: 14) {
                                     ForEach(exercisesForToday) { exercise in
                                         let isChecked = checkedExerciseIds.contains(exercise.id)
+                                        let alternative = LegExercisePairing.alternative(for: exercise)
 
-                                        HStack(spacing: 14) {
-                                            // Neumorphic Checkbox
-                                            Button {
-                                                if isChecked {
-                                                    checkedExerciseIds.remove(exercise.id)
-                                                } else {
-                                                    checkedExerciseIds.insert(exercise.id)
-                                                }
-                                            } label: {
-                                                ZStack {
-                                                    RoundedRectangle(cornerRadius: 10)
-                                                        .fill(isChecked ? NeumorphicTheme.emeraldGreen : NeumorphicTheme.darkSurface)
-                                                        .frame(width: 32, height: 32)
-                                                        .shadow(color: isChecked ? Color.clear : NeumorphicTheme.insetDark, radius: 2, x: 2, y: 2)
-                                                        .shadow(color: isChecked ? Color.clear : NeumorphicTheme.insetLight, radius: 2, x: -2, y: -2)
-
+                                        VStack(alignment: .leading, spacing: 10) {
+                                            HStack(spacing: 14) {
+                                                // Neumorphic Checkbox
+                                                Button {
                                                     if isChecked {
-                                                        Image(systemName: "checkmark")
-                                                            .font(.caption)
-                                                            .fontWeight(.bold)
-                                                            .foregroundStyle(.white)
+                                                        checkedExerciseIds.remove(exercise.id)
+                                                    } else {
+                                                        checkedExerciseIds.insert(exercise.id)
+                                                    }
+                                                } label: {
+                                                    ZStack {
+                                                        RoundedRectangle(cornerRadius: 10)
+                                                            .fill(isChecked ? NeumorphicTheme.emeraldGreen : NeumorphicTheme.darkSurface)
+                                                            .frame(width: 32, height: 32)
+                                                            .shadow(color: isChecked ? Color.clear : NeumorphicTheme.insetDark, radius: 2, x: 2, y: 2)
+                                                            .shadow(color: isChecked ? Color.clear : NeumorphicTheme.insetLight, radius: 2, x: -2, y: -2)
+
+                                                        if isChecked {
+                                                            Image(systemName: "checkmark")
+                                                                .font(.caption)
+                                                                .fontWeight(.bold)
+                                                                .foregroundStyle(.white)
+                                                        }
                                                     }
                                                 }
-                                            }
-                                            .buttonStyle(.plain)
+                                                .buttonStyle(.plain)
 
-                                            VStack(alignment: .leading, spacing: 3) {
-                                                Text(exercise.name)
-                                                    .font(.subheadline)
-                                                    .fontWeight(.semibold)
-                                                    .foregroundStyle(isChecked ? NeumorphicTheme.textMuted : NeumorphicTheme.textPrimary)
-                                                    .strikethrough(isChecked, color: NeumorphicTheme.textMuted)
+                                                VStack(alignment: .leading, spacing: 3) {
+                                                    Text(exercise.name)
+                                                        .font(.subheadline)
+                                                        .fontWeight(.bold)
+                                                        .foregroundStyle(isChecked ? NeumorphicTheme.textMuted : NeumorphicTheme.textPrimary)
+                                                        .strikethrough(isChecked, color: NeumorphicTheme.textMuted)
 
-                                                HStack(spacing: 6) {
-                                                    Text(exercise.primaryMuscle.rawValue)
-                                                        .font(.caption2)
-                                                        .foregroundStyle(exercise.primaryMuscle.accentColor)
+                                                    HStack(spacing: 6) {
+                                                        Text(exercise.primaryMuscle.rawValue)
+                                                            .font(.caption2)
+                                                            .foregroundStyle(exercise.primaryMuscle.accentColor)
+                                                            .fontWeight(.semibold)
 
-                                                    Text("• \(exercise.equipment)")
-                                                        .font(.caption2)
-                                                        .foregroundStyle(NeumorphicTheme.textMuted)
+                                                        Text("• \(exercise.equipment)")
+                                                            .font(.caption2)
+                                                            .foregroundStyle(NeumorphicTheme.textMuted)
+                                                    }
                                                 }
+
+                                                Spacer()
+
+                                                Text("3×10")
+                                                    .font(.caption)
+                                                    .fontWeight(.bold)
+                                                    .foregroundStyle(NeumorphicTheme.textSecondary)
+                                                    .padding(.horizontal, 8)
+                                                    .padding(.vertical, 4)
+                                                    .background(NeumorphicTheme.darkSurface)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 6))
                                             }
 
-                                            Spacer()
+                                            // MARK: - Alternative Leg Exercise Pill / Swap Action
+                                            if let alt = alternative {
+                                                Divider()
 
-                                            Text("3×10")
-                                                .font(.caption)
-                                                .fontWeight(.bold)
-                                                .foregroundStyle(NeumorphicTheme.textSecondary)
-                                                .padding(.horizontal, 8)
-                                                .padding(.vertical, 4)
-                                                .background(NeumorphicTheme.darkSurface)
-                                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                                HStack(spacing: 8) {
+                                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                                        .font(.caption2)
+                                                        .foregroundStyle(NeumorphicTheme.cyanPulse)
+
+                                                    Text(otherLegDay != nil ? "Alternative on \(otherLegDay!.rawValue): \(alt.name)" : "Alternative: \(alt.name)")
+                                                        .font(.caption2)
+                                                        .foregroundStyle(NeumorphicTheme.textSecondary)
+                                                        .lineLimit(1)
+
+                                                    Spacer()
+
+                                                    Button {
+                                                        swapExercise(exercise, with: alt)
+                                                    } label: {
+                                                        Text("Swap")
+                                                            .font(.caption2)
+                                                            .fontWeight(.bold)
+                                                            .foregroundStyle(NeumorphicTheme.primaryOrange)
+                                                            .padding(.horizontal, 8)
+                                                            .padding(.vertical, 3)
+                                                            .background(NeumorphicTheme.darkSurface)
+                                                            .clipShape(Capsule())
+                                                    }
+                                                    .buttonStyle(.plain)
+                                                }
+                                                .padding(.top, 2)
+                                            }
                                         }
-                                        .padding(12)
+                                        .padding(14)
                                         .background(NeumorphicTheme.background)
-                                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
                                         .shadow(color: NeumorphicTheme.lightShadow, radius: 3, x: -2, y: -2)
                                         .shadow(color: NeumorphicTheme.darkShadow, radius: 3, x: 2, y: 2)
                                     }

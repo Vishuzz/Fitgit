@@ -189,3 +189,72 @@ public final class ExerciseLibrary {
         allExercises.filter { $0.primaryMuscle == category }
     }
 }
+
+// MARK: - Leg Day Exercise & Alternative Pairings
+public enum LegExercisePairing {
+    public static var squat: ExerciseItem {
+        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Barbell Back Squat" }) ??
+        ExerciseItem(name: "Barbell Back Squat", primaryMuscle: .quads, equipment: "Barbell")
+    }
+
+    public static var legExtension: ExerciseItem {
+        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Leg Extension Machine" }) ??
+        ExerciseItem(name: "Leg Extension Machine", primaryMuscle: .quads, equipment: "Machine")
+    }
+
+    public static var rdl: ExerciseItem {
+        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Romanian Deadlift (RDL)" }) ??
+        ExerciseItem(name: "Romanian Deadlift (RDL)", primaryMuscle: .hamstrings, equipment: "Barbell")
+    }
+
+    public static var legCurl: ExerciseItem {
+        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Lying Leg Curl Machine" }) ??
+        ExerciseItem(name: "Lying Leg Curl Machine", primaryMuscle: .hamstrings, equipment: "Machine")
+    }
+
+    public static var hipThrust: ExerciseItem {
+        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Barbell Hip Thrust" }) ??
+        ExerciseItem(name: "Barbell Hip Thrust", primaryMuscle: .glutes, equipment: "Barbell")
+    }
+
+    public static var gluteKickback: ExerciseItem {
+        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Cable Glute Kickbacks" }) ??
+        ExerciseItem(name: "Cable Glute Kickbacks", primaryMuscle: .glutes, equipment: "Cable")
+    }
+
+    public static var standingCalf: ExerciseItem {
+        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Standing Calf Raise" }) ??
+        ExerciseItem(name: "Standing Calf Raise", primaryMuscle: .calves, equipment: "Machine")
+    }
+
+    public static var seatedCalf: ExerciseItem {
+        ExerciseLibrary.shared.allExercises.first(where: { $0.name == "Seated Calf Raise" }) ??
+        ExerciseItem(name: "Seated Calf Raise", primaryMuscle: .calves, equipment: "Machine")
+    }
+
+    /// Primary Leg Day exercises (1 per muscle: Squat, RDL, Hip Thrust, Standing Calf)
+    public static var day1Exercises: [ExerciseItem] {
+        [squat, rdl, hipThrust, standingCalf]
+    }
+
+    /// Alternative Leg Day exercises (1 per muscle: Leg Extension, Leg Curl, Glute Kickbacks, Seated Calf)
+    public static var day2AlternativeExercises: [ExerciseItem] {
+        [legExtension, legCurl, gluteKickback, seatedCalf]
+    }
+
+    /// Returns the paired alternative exercise for the opposite leg day
+    public static func alternative(for exercise: ExerciseItem) -> ExerciseItem? {
+        switch exercise.name {
+        case "Barbell Back Squat": return legExtension
+        case "Leg Extension Machine": return squat
+        case "Romanian Deadlift (RDL)": return legCurl
+        case "Lying Leg Curl Machine": return rdl
+        case "Barbell Hip Thrust": return gluteKickback
+        case "Cable Glute Kickbacks": return hipThrust
+        case "Standing Calf Raise": return seatedCalf
+        case "Seated Calf Raise": return standingCalf
+        default: return nil
+        }
+    }
+}
+

@@ -9,7 +9,7 @@ import Combine
 public final class SplitStore: ObservableObject {
     public static let shared = SplitStore()
 
-    private let storageKey = "fitgit_saved_weekly_split_v1"
+    private let storageKey = "fitgit_saved_weekly_split_v3"
     private let customRoutinesKey = "fitgit_saved_custom_routines_v1"
 
     @Published public var weeklySchedule: [DayWorkoutConfig] = []
@@ -45,7 +45,7 @@ public final class SplitStore: ObservableObject {
            decoded.count == 7 {
             self.weeklySchedule = decoded
         } else {
-            // Default to Push Pull Legs (PPL) split
+            // Default to Push Pull Legs (PPL) split with leg exercise pairings
             applyPresetSplit(.pushPullLegs)
         }
     }
@@ -111,29 +111,29 @@ public final class SplitStore: ObservableObject {
             weeklySchedule = [
                 DayWorkoutConfig(day: .monday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .shoulders, .triceps], routineTitle: "Push Day A"),
                 DayWorkoutConfig(day: .tuesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.back, .biceps, .forearms], routineTitle: "Pull Day A"),
-                DayWorkoutConfig(day: .wednesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves, .core], routineTitle: "Legs Day A"),
+                DayWorkoutConfig(day: .wednesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day A (Compounds)", customExercises: LegExercisePairing.day1Exercises),
                 DayWorkoutConfig(day: .thursday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .shoulders, .triceps], routineTitle: "Push Day B"),
                 DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.back, .biceps], routineTitle: "Pull Day B"),
-                DayWorkoutConfig(day: .saturday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .calves, .core], routineTitle: "Legs & Core"),
+                DayWorkoutConfig(day: .saturday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day B (Alternatives)", customExercises: LegExercisePairing.day2AlternativeExercises),
                 DayWorkoutConfig(day: .sunday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest & Recovery")
             ]
         case .arnoldSplit:
             weeklySchedule = [
                 DayWorkoutConfig(day: .monday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .back], routineTitle: "Chest & Back"),
                 DayWorkoutConfig(day: .tuesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.shoulders, .biceps, .triceps, .forearms], routineTitle: "Shoulders & Arms"),
-                DayWorkoutConfig(day: .wednesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Legs & Calves"),
+                DayWorkoutConfig(day: .wednesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day 1", customExercises: LegExercisePairing.day1Exercises),
                 DayWorkoutConfig(day: .thursday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .back], routineTitle: "Chest & Back"),
                 DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.shoulders, .biceps, .triceps], routineTitle: "Shoulders & Arms"),
-                DayWorkoutConfig(day: .saturday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .core], routineTitle: "Legs & Abs"),
+                DayWorkoutConfig(day: .saturday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day 2 (Alternative)", customExercises: LegExercisePairing.day2AlternativeExercises),
                 DayWorkoutConfig(day: .sunday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day")
             ]
         case .upperLower:
             weeklySchedule = [
                 DayWorkoutConfig(day: .monday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .back, .shoulders, .biceps, .triceps], routineTitle: "Upper Body Power"),
-                DayWorkoutConfig(day: .tuesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves, .core], routineTitle: "Lower Body Power"),
+                DayWorkoutConfig(day: .tuesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Lower Body 1", customExercises: LegExercisePairing.day1Exercises),
                 DayWorkoutConfig(day: .wednesday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Active Recovery"),
                 DayWorkoutConfig(day: .thursday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest, .back, .shoulders, .biceps, .triceps], routineTitle: "Upper Body Hypertrophy"),
-                DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .calves, .core], routineTitle: "Lower Body Hypertrophy"),
+                DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Lower Body 2 (Alternative)", customExercises: LegExercisePairing.day2AlternativeExercises),
                 DayWorkoutConfig(day: .saturday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day"),
                 DayWorkoutConfig(day: .sunday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest Day")
             ]
@@ -142,7 +142,7 @@ public final class SplitStore: ObservableObject {
                 DayWorkoutConfig(day: .monday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.chest], routineTitle: "Chest Day"),
                 DayWorkoutConfig(day: .tuesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.back], routineTitle: "Back Day"),
                 DayWorkoutConfig(day: .wednesday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.shoulders, .core], routineTitle: "Shoulders & Abs"),
-                DayWorkoutConfig(day: .thursday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day"),
+                DayWorkoutConfig(day: .thursday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.quads, .hamstrings, .glutes, .calves], routineTitle: "Leg Day", customExercises: LegExercisePairing.day1Exercises),
                 DayWorkoutConfig(day: .friday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.biceps, .triceps, .forearms], routineTitle: "Arm Farm"),
                 DayWorkoutConfig(day: .saturday, isRestDay: false, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [.core, .cardio], routineTitle: "Cardio & Core"),
                 DayWorkoutConfig(day: .sunday, isRestDay: true, workoutTime: defaultTime, reminderMinutesBefore: 15, targetMuscles: [], routineTitle: "Rest & Eat")
