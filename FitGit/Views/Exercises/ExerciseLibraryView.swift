@@ -25,7 +25,8 @@ public struct ExerciseLibraryView: View {
             list = list.filter {
                 $0.name.localizedCaseInsensitiveContains(searchText) ||
                 $0.equipment.localizedCaseInsensitiveContains(searchText) ||
-                $0.primaryMuscle.rawValue.localizedCaseInsensitiveContains(searchText)
+                $0.primaryMuscle.rawValue.localizedCaseInsensitiveContains(searchText) ||
+                $0.resolvedMusclePart.localizedCaseInsensitiveContains(searchText)
             }
         }
         return list
@@ -155,7 +156,7 @@ public struct ExerciseLibraryView: View {
                                                 .foregroundStyle(exercise.primaryMuscle.accentColor)
                                         )
 
-                                    VStack(alignment: .leading, spacing: 3) {
+                                    VStack(alignment: .leading, spacing: 5) {
                                         Text(exercise.name)
                                             .font(.subheadline)
                                             .fontWeight(.bold)
@@ -171,6 +172,22 @@ public struct ExerciseLibraryView: View {
                                                 .font(.caption2)
                                                 .foregroundStyle(NeumorphicTheme.textMuted)
                                         }
+
+                                        // Exact Targeted Muscle Part Pill
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "scope")
+                                                .font(.system(size: 9, weight: .bold))
+                                                .foregroundStyle(exercise.primaryMuscle.accentColor)
+
+                                            Text(exercise.resolvedMusclePart)
+                                                .font(.system(size: 11, weight: .semibold))
+                                                .foregroundStyle(NeumorphicTheme.textSecondary)
+                                                .lineLimit(1)
+                                        }
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(NeumorphicTheme.darkSurface)
+                                        .clipShape(Capsule())
                                     }
 
                                     Spacer()
@@ -234,6 +251,34 @@ private struct ExerciseDetailModal: View {
                         }
                     }
                     .padding()
+                    .neumorphicCard(cornerRadius: 18)
+
+                    // Target Muscle Part Card
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "scope")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundStyle(NeumorphicTheme.primaryOrange)
+
+                            Text("TARGETED PART OF MUSCLE")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(NeumorphicTheme.primaryOrange)
+                                .tracking(1.0)
+                        }
+
+                        Text(exercise.resolvedMusclePart)
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundStyle(NeumorphicTheme.textPrimary)
+
+                        Text("Isolates and places peak mechanical tension on this specific anatomical division.")
+                            .font(.caption)
+                            .foregroundStyle(NeumorphicTheme.textSecondary)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .neumorphicCard(cornerRadius: 18)
 
                     VStack(alignment: .leading, spacing: 12) {
@@ -326,6 +371,7 @@ private struct AddCustomExerciseModal: View {
 
     @State private var name: String = ""
     @State private var selectedMuscle: MuscleGroupCategory = .chest
+    @State private var targetMusclePart: String = ""
     @State private var equipment: String = "Dumbbells"
     @State private var instructions: String = ""
 
@@ -341,6 +387,7 @@ private struct AddCustomExerciseModal: View {
                             Text(cat.rawValue).tag(cat)
                         }
                     }
+                    TextField("Target Muscle Part (e.g. Upper Chest, Long Head)", text: $targetMusclePart)
                     Picker("Equipment", selection: $equipment) {
                         ForEach(equipmentOptions, id: \.self) { eq in
                             Text(eq).tag(eq)
@@ -364,6 +411,7 @@ private struct AddCustomExerciseModal: View {
                         let exercise = ExerciseItem(
                             name: name,
                             primaryMuscle: selectedMuscle,
+                            targetMusclePart: targetMusclePart,
                             secondaryMuscles: [],
                             equipment: equipment,
                             instructions: instructions,

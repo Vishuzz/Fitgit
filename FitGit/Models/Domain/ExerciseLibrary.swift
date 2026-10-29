@@ -60,6 +60,7 @@ public struct ExerciseItem: Identifiable, Codable, Hashable {
     public let id: UUID
     public let name: String
     public let primaryMuscle: MuscleGroupCategory
+    public var targetMusclePart: String
     public let secondaryMuscles: [String]
     public let equipment: String
     public let instructions: String
@@ -67,10 +68,18 @@ public struct ExerciseItem: Identifiable, Codable, Hashable {
     public var targetSets: Int
     public var targetRepsRange: String
 
+    public var resolvedMusclePart: String {
+        if !targetMusclePart.trimmingCharacters(in: .whitespaces).isEmpty {
+            return targetMusclePart
+        }
+        return ExerciseLibrary.defaultMusclePart(for: name, category: primaryMuscle)
+    }
+
     public init(
         id: UUID = UUID(),
         name: String,
         primaryMuscle: MuscleGroupCategory,
+        targetMusclePart: String = "",
         secondaryMuscles: [String] = [],
         equipment: String = "Barbell",
         instructions: String = "",
@@ -81,6 +90,7 @@ public struct ExerciseItem: Identifiable, Codable, Hashable {
         self.id = id
         self.name = name
         self.primaryMuscle = primaryMuscle
+        self.targetMusclePart = targetMusclePart
         self.secondaryMuscles = secondaryMuscles
         self.equipment = equipment
         self.instructions = instructions
@@ -94,6 +104,7 @@ public struct ExerciseItem: Identifiable, Codable, Hashable {
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         name = try container.decode(String.self, forKey: .name)
         primaryMuscle = try container.decode(MuscleGroupCategory.self, forKey: .primaryMuscle)
+        targetMusclePart = try container.decodeIfPresent(String.self, forKey: .targetMusclePart) ?? ""
         secondaryMuscles = try container.decodeIfPresent([String].self, forKey: .secondaryMuscles) ?? []
         equipment = try container.decodeIfPresent(String.self, forKey: .equipment) ?? "Barbell"
         instructions = try container.decodeIfPresent(String.self, forKey: .instructions) ?? ""
@@ -206,6 +217,118 @@ public final class ExerciseLibrary {
 
     public func exercises(for category: MuscleGroupCategory) -> [ExerciseItem] {
         allExercises.filter { $0.primaryMuscle == category }
+    }
+
+    public static func defaultMusclePart(for name: String, category: MuscleGroupCategory) -> String {
+        let lower = name.lowercased()
+        switch category {
+        case .chest:
+            if lower.contains("incline") {
+                return "Upper Chest (Clavicular Head)"
+            } else if lower.contains("decline") || lower.contains("dip") {
+                return "Lower Chest (Costal Head)"
+            } else if lower.contains("fly") || lower.contains("crossover") || lower.contains("pec deck") {
+                return "Mid & Inner Chest (Adduction / Cleavage)"
+            } else {
+                return "Mid Chest (Sternal Head)"
+            }
+        case .back:
+            if lower.contains("pull-up") || lower.contains("pulldown") {
+                return "Upper & Outer Lats (V-Taper Width)"
+            } else if lower.contains("shrug") {
+                return "Upper Trapezius (Traps)"
+            } else if lower.contains("deadlift") || lower.contains("hyperextension") {
+                return "Spinal Erectors & Lower Back"
+            } else if lower.contains("straight-arm") {
+                return "Latissimus Dorsi (Lats Isolation)"
+            } else if lower.contains("row") {
+                return "Rhomboids & Mid-Back (Thickness)"
+            } else {
+                return "Latissimus Dorsi & Mid-Back"
+            }
+        case .shoulders:
+            if lower.contains("lateral") || lower.contains("upright") {
+                return "Lateral Deltoid (Side Delt Width)"
+            } else if lower.contains("rear") || lower.contains("face pull") || lower.contains("reverse") {
+                return "Posterior Deltoid (Rear Delt Shelf)"
+            } else {
+                return "Anterior Deltoid (Front Deltoid)"
+            }
+        case .biceps:
+            if lower.contains("hammer") {
+                return "Brachialis & Brachioradialis (Arm Thickness)"
+            } else if lower.contains("incline") || lower.contains("concentration") {
+                return "Long Head (Biceps Peak & Stretch)"
+            } else if lower.contains("preacher") {
+                return "Short Head (Inner Biceps Thickness)"
+            } else {
+                return "Biceps Brachii (Overall Biceps Mass)"
+            }
+        case .triceps:
+            if lower.contains("rope") || lower.contains("pushdown") {
+                return "Lateral Head (Outer Horseshoe)"
+            } else if lower.contains("overhead") || lower.contains("skull") || lower.contains("extension") {
+                return "Long Head (Size & Triceps Bulk)"
+            } else if lower.contains("close-grip") || lower.contains("dip") {
+                return "Medial & Lateral Heads (Lockout Overload)"
+            } else {
+                return "Triceps Brachii (All Heads)"
+            }
+        case .forearms:
+            if lower.contains("reverse") {
+                return "Wrist Extensors (Top of Forearm)"
+            } else if lower.contains("wrist") {
+                return "Wrist Flexors (Inner Forearm Mass)"
+            } else {
+                return "Grip & Finger Flexors (Crush Strength)"
+            }
+        case .quads:
+            if lower.contains("extension") {
+                return "Rectus Femoris (Quad Teardrop & Lockout)"
+            } else if lower.contains("hack") || lower.contains("press") {
+                return "Vastus Lateralis (Outer Quad Sweep)"
+            } else if lower.contains("front") {
+                return "Vastus Medialis (Teardrop) & Rectus Femoris"
+            } else if lower.contains("split") || lower.contains("lunge") {
+                return "Rectus Femoris & Glute-Quad Tie-in"
+            } else {
+                return "Overall Quadriceps (Outer Sweep & Teardrop)"
+            }
+        case .hamstrings:
+            if lower.contains("seated") {
+                return "Semitendinosus & Semimembranosus (Inner Hamstrings)"
+            } else if lower.contains("lying") || lower.contains("curl") {
+                return "Biceps Femoris (Knee Flexion)"
+            } else if lower.contains("deadlift") || lower.contains("rdl") || lower.contains("good morning") {
+                return "Biceps Femoris & Glute-Ham Tie-in (Hip Hinge Stretch)"
+            } else {
+                return "Posterior Hamstrings"
+            }
+        case .glutes:
+            if lower.contains("kickback") {
+                return "Gluteus Medius & Upper Glute Shelf"
+            } else {
+                return "Gluteus Maximus (Main Glute Mass & Power)"
+            }
+        case .calves:
+            if lower.contains("seated") {
+                return "Soleus (Lower Deep Calf Muscle)"
+            } else {
+                return "Gastrocnemius (Upper Diamond Calf Head)"
+            }
+        case .core:
+            if lower.contains("woodchopper") || lower.contains("twist") {
+                return "Internal & External Obliques (Rotational Core)"
+            } else if lower.contains("hanging") || lower.contains("leg raise") || lower.contains("knee raise") {
+                return "Lower Rectus Abdominis & Pelvic Curl"
+            } else if lower.contains("plank") || lower.contains("wheel") {
+                return "Transverse Abdominis (Deep Core & Bracing)"
+            } else {
+                return "Upper & Mid Rectus Abdominis (6-Pack)"
+            }
+        case .cardio:
+            return "Cardiovascular System, Heart & Stamina"
+        }
     }
 }
 

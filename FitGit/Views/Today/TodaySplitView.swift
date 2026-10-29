@@ -293,6 +293,17 @@ public struct TodaySplitView: View {
                                                             .font(.caption2)
                                                             .foregroundStyle(NeumorphicTheme.textMuted)
                                                     }
+
+                                                    HStack(spacing: 4) {
+                                                        Image(systemName: "scope")
+                                                            .font(.system(size: 8, weight: .bold))
+                                                            .foregroundStyle(exercise.primaryMuscle.accentColor)
+
+                                                        Text(exercise.resolvedMusclePart)
+                                                            .font(.system(size: 10, weight: .medium))
+                                                            .foregroundStyle(NeumorphicTheme.textSecondary)
+                                                            .lineLimit(1)
+                                                    }
                                                 }
 
                                                 Spacer()

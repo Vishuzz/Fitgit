@@ -21,6 +21,7 @@ public enum PDFExerciseFactory {
     public static func make(
         name: String,
         primaryMuscle: MuscleGroupCategory,
+        targetMusclePart: String = "",
         secondaryMuscles: [String] = [],
         equipment: String,
         sets: Int,
@@ -30,6 +31,7 @@ public enum PDFExerciseFactory {
         ExerciseItem(
             name: name,
             primaryMuscle: primaryMuscle,
+            targetMusclePart: targetMusclePart,
             secondaryMuscles: secondaryMuscles,
             equipment: equipment,
             instructions: instructions.isEmpty ? "Finish working sets with 1-3 repetitions in reserve (RIR). Rest 2-3 mins on compounds and 60-120s on isolations." : instructions,
