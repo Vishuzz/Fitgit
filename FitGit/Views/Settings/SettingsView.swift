@@ -61,8 +61,16 @@ public struct SettingsView: View {
 
                             if !notificationManager.isAuthorized {
                                 Button("Enable") {
-                                    notificationManager.requestAuthorization { _ in
-                                        notificationManager.scheduleAllReminders(for: splitStore.weeklySchedule)
+                                    if notificationManager.authorizationStatus == .denied {
+                                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    } else {
+                                        notificationManager.requestAuthorization { granted in
+                                            if granted {
+                                                notificationManager.scheduleAllReminders(for: splitStore.weeklySchedule)
+                                            }
+                                        }
                                     }
                                 }
                                 .font(.caption)

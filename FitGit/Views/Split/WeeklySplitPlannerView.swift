@@ -58,45 +58,6 @@ public struct WeeklySplitPlannerView: View {
                     .padding(.horizontal)
                     .padding(.top, 8)
 
-                    // MARK: - Notification Permission Banner (if not yet granted)
-                    if !notificationManager.isAuthorized {
-                        HStack(spacing: 12) {
-                            Image(systemName: "bell.badge.fill")
-                                .font(.title3)
-                                .foregroundStyle(NeumorphicTheme.primaryOrange)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Enable Workout Reminders")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(NeumorphicTheme.textPrimary)
-
-                                Text("Get notified before each session to check today's split.")
-                                    .font(.caption2)
-                                    .foregroundStyle(NeumorphicTheme.textSecondary)
-                            }
-
-                            Spacer()
-
-                            Button("Enable") {
-                                notificationManager.requestAuthorization { granted in
-                                    if granted {
-                                        notificationManager.scheduleAllReminders(for: splitStore.weeklySchedule)
-                                    }
-                                }
-                            }
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .neumorphicButton(cornerRadius: 10, accent: NeumorphicTheme.primaryOrange)
-                        }
-                        .padding(14)
-                        .neumorphicCard(cornerRadius: 16)
-                        .padding(.horizontal)
-                    }
-
                     // MARK: - Days of Week Horizontal Selector
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
@@ -373,22 +334,15 @@ public struct WeeklySplitPlannerView: View {
 
                                     Spacer()
 
-                                    Button {
-                                        if !notificationManager.isAuthorized {
-                                            notificationManager.requestAuthorization { granted in
-                                                if granted {
-                                                    notificationManager.scheduleAllReminders(for: splitStore.weeklySchedule)
-                                                    notificationManager.sendTestNotificationNow(todayConfig: activeConfig)
-                                                }
-                                            }
-                                        } else {
+                                    if notificationManager.isAuthorized {
+                                        Button {
                                             notificationManager.sendTestNotificationNow(todayConfig: activeConfig)
+                                        } label: {
+                                            Text("Test Alert")
+                                                .font(.caption2)
+                                                .fontWeight(.bold)
+                                                .foregroundStyle(NeumorphicTheme.primaryOrange)
                                         }
-                                    } label: {
-                                        Text("Test Alert")
-                                            .font(.caption2)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.primaryOrange)
                                     }
                                 }
                                 .padding(.horizontal, 4)
