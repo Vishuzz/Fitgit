@@ -10,12 +10,8 @@ public struct SettingsView: View {
     @ObservedObject var notificationManager: NotificationManager = NotificationManager.shared
     @ObservedObject var splitStore: SplitStore = SplitStore.shared
 
-    @AppStorage("fitgit_weight_unit") private var weightUnit: String = "kg"
     @AppStorage("fitgit_haptics_enabled") private var hapticsEnabled: Bool = true
     @AppStorage("fitgit_sounds_enabled") private var soundsEnabled: Bool = true
-    @AppStorage("fitgit_rest_timer_seconds") private var restTimerSeconds: Int = 90
-    @AppStorage("fitgit_auto_advance_set") private var autoAdvanceSet: Bool = true
-    @AppStorage("fitgit_leg_swaps_enabled") private var legSwapsEnabled: Bool = true
 
     @State private var searchText: String = ""
     @State private var showingTestAlertToast: Bool = false
@@ -122,7 +118,7 @@ public struct SettingsView: View {
                     }
 
                     // MARK: - Section 2: PREFERENCES & ALERTS
-                    if matchesSearch("workout reminders notifications alerts queue sounds haptics weight units kg lbs") {
+                    if matchesSearch("workout reminders notifications alerts queue sounds haptics") {
                         VStack(alignment: .leading, spacing: 12) {
                             sectionHeader("PREFERENCES & ALERTS")
 
@@ -153,183 +149,18 @@ public struct SettingsView: View {
                                         .tint(NeumorphicTheme.primaryOrange)
                                 }
                                 .padding(.horizontal, 10)
-
-                                Divider()
-
-                                // Weight Units Segmented Control
-                                HStack(spacing: 14) {
-                                    settingIconBox("scalemass.fill", color: NeumorphicTheme.emeraldGreen)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Weight Units")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("Used across exercise logs and volume")
-                                            .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                                    }
-
-                                    Spacer()
-
-                                    Picker("", selection: $weightUnit) {
-                                        Text("kg").tag("kg")
-                                        Text("lbs").tag("lbs")
-                                    }
-                                    .pickerStyle(.segmented)
-                                    .frame(width: 100)
-                                }
-                                .padding(.horizontal, 10)
                             }
                             .neumorphicCard(cornerRadius: 20, padding: 14)
                         }
                         .padding(.horizontal)
                     }
 
-                    // MARK: - Section 3: WORKOUT & TRAINING SETTINGS
-                    if matchesSearch("workout training rest timer auto advance next set leg alternate") {
+                    // MARK: - Section 3: PRIVACY & SYSTEM INFO
+                    if matchesSearch("privacy storage about version info") {
                         VStack(alignment: .leading, spacing: 12) {
-                            sectionHeader("TRAINING & WORKOUT SETTINGS")
+                            sectionHeader("PRIVACY & SYSTEM INFO")
 
                             VStack(spacing: 14) {
-                                // Default Rest Timer
-                                HStack(spacing: 14) {
-                                    settingIconBox("stopwatch.fill", color: Color.mint)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Default Rest Timer")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("Rest duration countdown between sets")
-                                            .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                                    }
-
-                                    Spacer()
-
-                                    Picker("", selection: $restTimerSeconds) {
-                                        Text("60s").tag(60)
-                                        Text("90s").tag(90)
-                                        Text("120s").tag(120)
-                                        Text("180s").tag(180)
-                                    }
-                                    .pickerStyle(.menu)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(NeumorphicTheme.darkSurface)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                }
-                                .padding(.horizontal, 10)
-
-                                Divider()
-
-                                // Auto-Advance Next Set
-                                HStack(spacing: 14) {
-                                    settingIconBox("arrow.forward.circle.fill", color: Color.indigo)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Auto-Advance Next Set")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("Automatically highlight next set upon check")
-                                            .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                                    }
-
-                                    Spacer()
-
-                                    Toggle("", isOn: $autoAdvanceSet)
-                                        .labelsHidden()
-                                        .tint(NeumorphicTheme.primaryOrange)
-                                }
-                                .padding(.horizontal, 10)
-
-                                Divider()
-
-                                // Leg Day Exercise Alternates
-                                HStack(spacing: 14) {
-                                    settingIconBox("arrow.triangle.2.circlepath.circle.fill", color: Color.pink)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Leg Day Alternates")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("Squats on Leg 1 ⇄ Leg Extensions on Leg 2")
-                                            .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                                    }
-
-                                    Spacer()
-
-                                    Toggle("", isOn: $legSwapsEnabled)
-                                        .labelsHidden()
-                                        .tint(NeumorphicTheme.primaryOrange)
-                                }
-                                .padding(.horizontal, 10)
-                            }
-                            .neumorphicCard(cornerRadius: 20, padding: 14)
-                        }
-                        .padding(.horizontal)
-                    }
-
-                    // MARK: - Section 4: CLOUD, ARCHITECTURE & MORE INFO
-                    if matchesSearch("firebase cloud push notification architecture theme soft ui privacy about version") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            sectionHeader("CLOUD, ARCHITECTURE & INFO")
-
-                            VStack(spacing: 14) {
-                                // Do you need Firebase?
-                                HStack(spacing: 14) {
-                                    settingIconBox("cloud.fill", color: Color.orange)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Do You Need Firebase?")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("Native Local Alerts vs Remote Push Guide")
-                                            .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                                    }
-
-                                    Spacer()
-
-                                    Button("Guide") {
-                                        showingFirebaseGuideModal = true
-                                    }
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(NeumorphicTheme.primaryOrange)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
-                                    .neumorphicButton(cornerRadius: 8)
-                                }
-                                .padding(.horizontal, 10)
-
-                                Divider()
-
-                                // Neumorphic Soft UI
-                                HStack(spacing: 14) {
-                                    settingIconBox("sparkles", color: NeumorphicTheme.cyanPulse)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Neumorphism Soft UI")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("Dual-shadow concave & convex surface depth")
-                                            .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                                    }
-
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 10)
-
-                                Divider()
 
                                 // Privacy & Storage
                                 HStack(spacing: 14) {
@@ -382,9 +213,6 @@ public struct SettingsView: View {
                 Button("Got it", role: .cancel) {}
             } message: {
                 Text("A pre-workout notification has been triggered! It will pop up in 2 seconds with sound, showing today's targeted split.")
-            }
-            .sheet(isPresented: $showingFirebaseGuideModal) {
-                FirebaseGuideModal()
             }
             .sheet(isPresented: $showingMonthlyActivityModal) {
                 MonthlyActivityModalView()
@@ -1066,74 +894,6 @@ private struct TimeSpentModalView: View {
             }
             .background(NeumorphicTheme.background.ignoresSafeArea())
             .navigationTitle("Time Spent")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Firebase Setup Guide Modal
-private struct FirebaseGuideModal: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Summary Banner
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundStyle(NeumorphicTheme.emeraldGreen)
-                            Text("Current Status: Fully Operational Without Firebase")
-                                .font(.headline)
-                                .foregroundStyle(NeumorphicTheme.textPrimary)
-                        }
-
-                        Text("Your pre-workout reminders currently use Apple's native UserNotifications framework. This is the optimal architecture because:")
-                            .font(.caption)
-                            .foregroundStyle(NeumorphicTheme.textSecondary)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("1. 100% Offline: Triggers even with zero internet or airplane mode.")
-                            Text("2. Zero Cost: No server hosting or Firebase fees.")
-                            Text("3. Ultra Precise: iOS background scheduler fires at the exact minute.")
-                            Text("4. Zero Setup: Works out of the box without Google certificates.")
-                        }
-                        .font(.caption2)
-                        .foregroundStyle(NeumorphicTheme.textSecondary)
-                        .padding(10)
-                        .background(NeumorphicTheme.darkSurface)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-                    .padding()
-                    .neumorphicCard(cornerRadius: 18)
-
-                    // Step by step Firebase FCM Guide
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("STEPS IF YOU WANT FIREBASE CLOUD MESSAGING (FCM):")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(NeumorphicTheme.textMuted)
-
-                        StepRow(number: "1", title: "Apple Developer Account", desc: "Enroll in the Apple Developer Program ($99/yr) so you can generate an APNs (Apple Push Notification service) Auth Key (.p8 file).")
-                        StepRow(number: "2", title: "Create Firebase Project", desc: "Go to console.firebase.google.com and create a project named 'FitGit'.")
-                        StepRow(number: "3", title: "Register iOS App", desc: "Enter your Bundle ID: name.Vishek.FitGit, download GoogleService-Info.plist and place it in the FitGit project folder.")
-                        StepRow(number: "4", title: "Upload APNs Key to Firebase", desc: "In Firebase Console → Project Settings → Cloud Messaging, upload your .p8 key, Key ID, and Apple Team ID.")
-                        StepRow(number: "5", title: "Add Firebase SPM Package", desc: "In Xcode: File → Add Package Dependencies → URL: https://github.com/firebase/firebase-ios-sdk → Select FirebaseMessaging.")
-                        StepRow(number: "6", title: "Initialize in App Scene", desc: "Import FirebaseCore and call FirebaseApp.configure() inside FitGitApp.swift.")
-                    }
-                    .padding()
-                    .neumorphicCard(cornerRadius: 18)
-                }
-                .padding()
-            }
-            .background(NeumorphicTheme.background.ignoresSafeArea())
-            .navigationTitle("Firebase Notification Guide")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
