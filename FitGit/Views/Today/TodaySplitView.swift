@@ -93,11 +93,17 @@ public struct TodaySplitView: View {
 
                         // Test Notification Button
                         Button {
-                            notificationManager.requestAuthorization { granted in
-                                if granted {
-                                    notificationManager.sendTestNotificationNow(todayConfig: todayConfig)
-                                    showingTestNotificationAlert = true
+                            if !notificationManager.isAuthorized {
+                                notificationManager.requestAuthorization { granted in
+                                    if granted {
+                                        notificationManager.scheduleAllReminders(for: splitStore.weeklySchedule)
+                                        notificationManager.sendTestNotificationNow(todayConfig: todayConfig)
+                                        showingTestNotificationAlert = true
+                                    }
                                 }
+                            } else {
+                                notificationManager.sendTestNotificationNow(todayConfig: todayConfig)
+                                showingTestNotificationAlert = true
                             }
                         } label: {
                             HStack(spacing: 6) {
@@ -368,10 +374,10 @@ public struct TodaySplitView: View {
             }
             .background(NeumorphicTheme.background.ignoresSafeArea())
             .navigationBarHidden(true)
-            .alert("Test Notification Scheduled", isPresented: $showingTestNotificationAlert) {
+            .alert("Test Notification Triggered", isPresented: $showingTestNotificationAlert) {
                 Button("OK", role: .cancel) {}
             } message: {
-                Text("Lock your screen or go to the Home screen — you will receive an on-device notification in 5 seconds with today's split details!")
+                Text("A pre-workout notification has been triggered! It will pop up in 2 seconds with sound, showing today's targeted split.")
             }
         }
     }

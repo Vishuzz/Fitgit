@@ -76,24 +76,61 @@ public struct SettingsView: View {
 
                         Divider()
 
-                        Text("Scheduled Alerts: FitGit automatically schedules notifications for all your active workout days according to your preferred time and lead time (15–60 mins before).")
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("SYSTEM QUEUE")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(NeumorphicTheme.textMuted)
+
+                                Text(notificationManager.isAuthorized ? "\(notificationManager.lastScheduledCount) alerts registered in iOS" : "Pending permission")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(NeumorphicTheme.textPrimary)
+                            }
+
+                            Spacer()
+
+                            Button {
+                                notificationManager.scheduleAllReminders(for: splitStore.weeklySchedule)
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                    Text("Resync")
+                                }
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(NeumorphicTheme.primaryOrange)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                            }
+                            .neumorphicButton(cornerRadius: 10)
+                        }
+
+                        Text("Scheduled Alerts: FitGit automatically schedules local notifications for all your active workout days according to your preferred time and lead time (15–60 mins before).")
                             .font(.caption)
                             .foregroundStyle(NeumorphicTheme.textSecondary)
                             .lineSpacing(3)
 
                         // Test Notification Trigger
                         Button {
-                            notificationManager.requestAuthorization { granted in
-                                if granted {
-                                    notificationManager.sendTestNotificationNow(todayConfig: splitStore.todayConfig)
-                                    showingTestAlertToast = true
+                            if !notificationManager.isAuthorized {
+                                notificationManager.requestAuthorization { granted in
+                                    if granted {
+                                        notificationManager.scheduleAllReminders(for: splitStore.weeklySchedule)
+                                        notificationManager.sendTestNotificationNow(todayConfig: splitStore.todayConfig)
+                                        showingTestAlertToast = true
+                                    }
                                 }
+                            } else {
+                                notificationManager.sendTestNotificationNow(todayConfig: splitStore.todayConfig)
+                                showingTestAlertToast = true
                             }
                         } label: {
                             HStack {
                                 Image(systemName: "paperplane.fill")
                                     .foregroundStyle(NeumorphicTheme.primaryOrange)
-                                Text("Send Test Pre-Workout Notification (5s)")
+                                Text("Send Test Pre-Workout Notification (2s)")
                                     .font(.subheadline)
                                     .fontWeight(.bold)
                                     .foregroundStyle(NeumorphicTheme.textPrimary)

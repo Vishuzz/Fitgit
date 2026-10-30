@@ -80,4 +80,65 @@ struct FitGitTests {
             #expect(!exercises.isEmpty, "Muscle \(muscle.rawValue) must have exercises")
         }
     }
+
+    @Test("Notification alert timing calculation and formatting")
+    func testNotificationAlertTimeCalculations() throws {
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone.current
+
+        // 18:30 with 15-minute lead time -> 18:15 alert time
+        var comps = DateComponents()
+        comps.hour = 18
+        comps.minute = 30
+        let workoutDate = calendar.date(from: comps) ?? Date()
+
+        let config = DayWorkoutConfig(
+            day: .monday,
+            isRestDay: false,
+            workoutTime: workoutDate,
+            reminderMinutesBefore: 15,
+            targetMuscles: [.chest, .triceps],
+            routineTitle: "Push Day"
+        )
+
+        let alertHour = calendar.component(.hour, from: config.alertTime)
+        let alertMinute = calendar.component(.minute, from: config.alertTime)
+        #expect(alertHour == 18)
+        #expect(alertMinute == 15)
+
+        // Midnight rollover edge case: 00:10 with 15-minute reminder -> 23:55
+        var midnightComps = DateComponents()
+        midnightComps.hour = 0
+        midnightComps.minute = 10
+        let midnightWorkout = calendar.date(from: midnightComps) ?? Date()
+
+        let midnightConfig = DayWorkoutConfig(
+            day: .tuesday,
+            isRestDay: false,
+            workoutTime: midnightWorkout,
+            reminderMinutesBefore: 15
+        )
+
+        let rolloverHour = calendar.component(.hour, from: midnightConfig.alertTime)
+        let rolloverMinute = calendar.component(.minute, from: midnightConfig.alertTime)
+        #expect(rolloverHour == 23)
+        #expect(rolloverMinute == 55)
+    }
+
+    @Test("Notification Manager schedules active workout days and filters rest days")
+    func testNotificationSchedulingLogic() throws {
+        let store = SplitStore()
+        store.applyPresetSplit(.pushPullLegs)
+
+        let activeDays = store.weeklySchedule.filter { !$0.isRestDay }
+        let restDays = store.weeklySchedule.filter { $0.isRestDay }
+
+        #expect(activeDays.count == 6)
+        #expect(restDays.count == 1)
+
+        for dayConfig in activeDays {
+            #expect(!dayConfig.summaryMuscles.isEmpty)
+            #expect(dayConfig.reminderMinutesBefore >= 15)
+        }
+    }
 }

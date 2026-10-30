@@ -90,6 +90,16 @@ public struct DayWorkoutConfig: Identifiable, Codable {
         return formatter.string(from: workoutTime)
     }
 
+    public var alertTime: Date {
+        Calendar.current.date(byAdding: .minute, value: -reminderMinutesBefore, to: workoutTime) ?? workoutTime
+    }
+
+    public var formattedAlertTime: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: alertTime)
+    }
+
     public var summaryMuscles: String {
         if isRestDay { return "Rest & Recovery" }
         if targetMuscles.isEmpty { return "General Workout" }
