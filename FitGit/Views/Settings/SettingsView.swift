@@ -13,11 +13,9 @@ public struct SettingsView: View {
     @AppStorage("fitgit_haptics_enabled") private var hapticsEnabled: Bool = true
     @AppStorage("fitgit_sounds_enabled") private var soundsEnabled: Bool = true
 
-    @State private var searchText: String = ""
     @State private var showingTestAlertToast: Bool = false
     @State private var showingFirebaseGuideModal: Bool = false
     @State private var showingMonthlyActivityModal: Bool = false
-    @State private var showingVolumeHistoryModal: Bool = false
     @State private var showingTimeSpentModal: Bool = false
 
     public init() {}
@@ -44,83 +42,45 @@ public struct SettingsView: View {
                     .padding(.horizontal)
                     .padding(.top, 8)
 
-                    // MARK: - Search Bar (Instagram Style)
-                    HStack(spacing: 10) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(NeumorphicTheme.textMuted)
-                        TextField("Search settings and activity...", text: $searchText)
-                            .font(.subheadline)
-                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                        if !searchText.isEmpty {
-                            Button {
-                                searchText = ""
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(NeumorphicTheme.textMuted)
-                            }
-                        }
-                    }
-                    .padding(12)
-                    .neumorphicConcave(cornerRadius: 14)
-                    .padding(.horizontal)
-
-                    // MARK: - Instagram-Style Athlete Profile Card
-                    if searchText.isEmpty {
-                        athleteProfileCard
-                    }
+                    // MARK: - Athlete Profile Card
+                    athleteProfileCard
 
                     // MARK: - Section 1: HOW YOU USE FITGIT (Activity & Insights)
-                    if matchesSearch("active days month activity consistency history volume time") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            sectionHeader("HOW YOU USE FITGIT")
+                    VStack(alignment: .leading, spacing: 12) {
+                        sectionHeader("HOW YOU USE FITGIT")
 
-                            VStack(spacing: 0) {
-                                // 1. Your Active Days This Month
-                                SettingActionRow(
-                                    icon: "flame.fill",
-                                    iconColor: NeumorphicTheme.primaryOrange,
-                                    title: "Your Active Days in this Month",
-                                    subtitle: "18 days logged in October • 82% consistency",
-                                    badgeText: "18 Days"
-                                ) {
-                                    showingMonthlyActivityModal = true
-                                }
-
-                                Divider().padding(.leading, 56)
-
-                                // 2. Workout History & Volume
-                                SettingActionRow(
-                                    icon: "chart.bar.xaxis.ascending",
-                                    iconColor: NeumorphicTheme.cyanPulse,
-                                    title: "Workout History & Volume Logs",
-                                    subtitle: "24 completed sessions • 42,850 kg volume",
-                                    badgeText: "Logs"
-                                ) {
-                                    showingVolumeHistoryModal = true
-                                }
-
-                                Divider().padding(.leading, 56)
-
-                                // 3. Time Spent in Gym
-                                SettingActionRow(
-                                    icon: "clock.arrow.circlepath",
-                                    iconColor: NeumorphicTheme.purplePower,
-                                    title: "Time Spent Working Out",
-                                    subtitle: "58m daily average • 22.4 hours this month",
-                                    badgeText: "58m avg"
-                                ) {
-                                    showingTimeSpentModal = true
-                                }
+                        VStack(spacing: 0) {
+                            // 1. Your Active Days This Month
+                            SettingActionRow(
+                                icon: "flame.fill",
+                                iconColor: NeumorphicTheme.primaryOrange,
+                                title: "Your Active Days in this Month",
+                                subtitle: "18 days logged in October • 82% consistency",
+                                badgeText: "18 Days"
+                            ) {
+                                showingMonthlyActivityModal = true
                             }
-                            .neumorphicCard(cornerRadius: 20, padding: 6)
+
+                            Divider().padding(.leading, 56)
+
+                            // 2. Time Spent in Gym
+                            SettingActionRow(
+                                icon: "clock.arrow.circlepath",
+                                iconColor: NeumorphicTheme.purplePower,
+                                title: "Time Spent Working Out",
+                                subtitle: "58m daily average • 22.4 hours this month",
+                                badgeText: "58m avg"
+                            ) {
+                                showingTimeSpentModal = true
+                            }
                         }
-                        .padding(.horizontal)
+                        .neumorphicCard(cornerRadius: 20, padding: 6)
                     }
+                    .padding(.horizontal)
 
                     // MARK: - Section 2: PREFERENCES & ALERTS
-                    if matchesSearch("workout reminders notifications alerts queue sounds haptics") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            sectionHeader("PREFERENCES & ALERTS")
+                    VStack(alignment: .leading, spacing: 12) {
+                        sectionHeader("PREFERENCES & ALERTS")
 
                             VStack(spacing: 16) {
                                 // Workout Reminders Card
@@ -153,57 +113,54 @@ public struct SettingsView: View {
                             .neumorphicCard(cornerRadius: 20, padding: 14)
                         }
                         .padding(.horizontal)
-                    }
 
                     // MARK: - Section 3: PRIVACY & SYSTEM INFO
-                    if matchesSearch("privacy storage about version info") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            sectionHeader("PRIVACY & SYSTEM INFO")
+                    VStack(alignment: .leading, spacing: 12) {
+                        sectionHeader("PRIVACY & SYSTEM INFO")
 
-                            VStack(spacing: 14) {
+                        VStack(spacing: 14) {
 
-                                // Privacy & Storage
-                                HStack(spacing: 14) {
-                                    settingIconBox("lock.shield.fill", color: NeumorphicTheme.emeraldGreen)
+                            // Privacy & Storage
+                            HStack(spacing: 14) {
+                                settingIconBox("lock.shield.fill", color: NeumorphicTheme.emeraldGreen)
 
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Privacy & Storage")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("100% On-Device Core Data • Zero Tracking")
-                                            .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                                    }
-
-                                    Spacer()
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Privacy & Storage")
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(NeumorphicTheme.textPrimary)
+                                    Text("100% On-Device Core Data • Zero Tracking")
+                                        .font(.caption2)
+                                        .foregroundStyle(NeumorphicTheme.textSecondary)
                                 }
-                                .padding(.horizontal, 10)
 
-                                Divider()
-
-                                // About FitGit
-                                HStack(spacing: 14) {
-                                    settingIconBox("info.circle.fill", color: NeumorphicTheme.textMuted)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("About FitGit")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("Version 1.2.0 • Build 2026.10")
-                                            .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                                    }
-
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 10)
+                                Spacer()
                             }
-                            .neumorphicCard(cornerRadius: 20, padding: 14)
+                            .padding(.horizontal, 10)
+
+                            Divider()
+
+                            // About FitGit
+                            HStack(spacing: 14) {
+                                settingIconBox("info.circle.fill", color: NeumorphicTheme.textMuted)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("About FitGit")
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(NeumorphicTheme.textPrimary)
+                                    Text("Version 1.2.0 • Build 2026.10")
+                                        .font(.caption2)
+                                        .foregroundStyle(NeumorphicTheme.textSecondary)
+                                }
+
+                                Spacer()
+                            }
+                            .padding(.horizontal, 10)
                         }
-                        .padding(.horizontal)
+                        .neumorphicCard(cornerRadius: 20, padding: 14)
                     }
+                    .padding(.horizontal)
                 }
                 .padding(.bottom, 110)
             }
@@ -216,9 +173,6 @@ public struct SettingsView: View {
             }
             .sheet(isPresented: $showingMonthlyActivityModal) {
                 MonthlyActivityModalView()
-            }
-            .sheet(isPresented: $showingVolumeHistoryModal) {
-                VolumeHistoryModalView()
             }
             .sheet(isPresented: $showingTimeSpentModal) {
                 TimeSpentModalView()
@@ -425,12 +379,6 @@ public struct SettingsView: View {
             .padding(.vertical, 3)
             .background(color.opacity(0.12))
             .clipShape(Capsule())
-    }
-
-    private func matchesSearch(_ keywords: String) -> Bool {
-        if searchText.trimmingCharacters(in: .whitespaces).isEmpty { return true }
-        let query = searchText.lowercased()
-        return keywords.lowercased().contains(query)
     }
 }
 
@@ -684,121 +632,6 @@ private struct MonthlyActivityModalView: View {
     private func isDayRest(_ day: Int) -> Bool {
         let restDates: Set<Int> = [4, 7, 11, 14, 18, 21]
         return restDates.contains(day)
-    }
-}
-
-// MARK: - Volume History Modal View
-private struct VolumeHistoryModalView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 18) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("VOLUME LOGS")
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(NeumorphicTheme.cyanPulse)
-                                .tracking(1.5)
-
-                            Text("Total Tonnage Lifted")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(NeumorphicTheme.textPrimary)
-                        }
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-
-                    // Volume Stat Cards
-                    HStack(spacing: 12) {
-                        VStack(spacing: 4) {
-                            Text("42,850 kg")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundStyle(NeumorphicTheme.cyanPulse)
-                            Text("October Tonnage")
-                                .font(.caption2)
-                                .foregroundStyle(NeumorphicTheme.textSecondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(14)
-                        .neumorphicCard(cornerRadius: 16)
-
-                        VStack(spacing: 4) {
-                            Text("94 Sets")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundStyle(NeumorphicTheme.primaryOrange)
-                            Text("Completed")
-                                .font(.caption2)
-                                .foregroundStyle(NeumorphicTheme.textSecondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(14)
-                        .neumorphicCard(cornerRadius: 16)
-                    }
-                    .padding(.horizontal)
-
-                    // Muscle Group Volume Breakdown
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("VOLUME BY MUSCLE GROUP")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(NeumorphicTheme.textMuted)
-
-                        volumeProgressRow(muscle: "Chest", volume: "10,400 kg", progress: 0.85, color: MuscleGroupCategory.chest.accentColor)
-                        volumeProgressRow(muscle: "Back", volume: "11,200 kg", progress: 0.90, color: MuscleGroupCategory.back.accentColor)
-                        volumeProgressRow(muscle: "Quads & Legs", volume: "13,600 kg", progress: 0.95, color: MuscleGroupCategory.quads.accentColor)
-                        volumeProgressRow(muscle: "Shoulders", volume: "4,200 kg", progress: 0.65, color: MuscleGroupCategory.shoulders.accentColor)
-                        volumeProgressRow(muscle: "Arms", volume: "3,450 kg", progress: 0.60, color: MuscleGroupCategory.biceps.accentColor)
-                    }
-                    .padding(16)
-                    .neumorphicCard(cornerRadius: 20)
-                    .padding(.horizontal)
-                }
-                .padding(.bottom, 32)
-            }
-            .background(NeumorphicTheme.background.ignoresSafeArea())
-            .navigationTitle("Volume History")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
-        }
-    }
-
-    private func volumeProgressRow(muscle: String, volume: String, progress: Double, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(muscle)
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundStyle(NeumorphicTheme.textPrimary)
-                Spacer()
-                Text(volume)
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundStyle(color)
-            }
-
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(NeumorphicTheme.darkSurface)
-                        .frame(height: 8)
-                    Capsule()
-                        .fill(color)
-                        .frame(width: geo.size.width * CGFloat(progress), height: 8)
-                }
-            }
-            .frame(height: 8)
-        }
     }
 }
 
