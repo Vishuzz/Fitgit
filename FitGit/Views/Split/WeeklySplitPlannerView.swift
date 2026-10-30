@@ -104,26 +104,63 @@ public struct WeeklySplitPlannerView: View {
                                 let isSelected = (day == selectedDay)
                                 let config = splitStore.weeklySchedule.first(where: { $0.day == day })
                                 let isRest = config?.isRestDay ?? false
+                                let isGymHit = config?.isGymHit ?? false
+                                let isPrevious = day.isPreviousDayThisWeek
+                                let isToday = day.isToday
 
                                 Button {
                                     withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                                         selectedDay = day
                                     }
                                 } label: {
-                                    VStack(spacing: 6) {
+                                    VStack(spacing: 5) {
                                         Text(day.shortName)
                                             .font(.caption)
                                             .fontWeight(.bold)
-                                            .foregroundStyle(isSelected ? NeumorphicTheme.primaryOrange : NeumorphicTheme.textSecondary)
+                                            .foregroundStyle(isSelected ? NeumorphicTheme.primaryOrange : (isGymHit ? NeumorphicTheme.emeraldGreen : NeumorphicTheme.textSecondary))
 
-                                        Circle()
-                                            .fill(isRest ? Color.blue.opacity(0.4) : (isSelected ? NeumorphicTheme.primaryOrange : NeumorphicTheme.textMuted.opacity(0.3)))
-                                            .frame(width: 8, height: 8)
+                                        // Status Indicator: Gym Hit, Rest Day, or Target Status
+                                        if isGymHit {
+                                            HStack(spacing: 2) {
+                                                Image(systemName: "checkmark")
+                                                    .font(.system(size: 8, weight: .black))
+                                                    .foregroundStyle(.white)
+                                            }
+                                            .frame(width: 14, height: 14)
+                                            .background(NeumorphicTheme.emeraldGreen)
+                                            .clipShape(Circle())
+                                        } else if isRest {
+                                            Image(systemName: "bed.double.fill")
+                                                .font(.system(size: 9))
+                                                .foregroundStyle(Color.blue.opacity(0.7))
+                                                .frame(height: 14)
+                                        } else if isPrevious {
+                                            Circle()
+                                                .strokeBorder(Color.red.opacity(0.35), lineWidth: 1.5)
+                                                .frame(width: 8, height: 8)
+                                                .frame(height: 14)
+                                        } else if isToday {
+                                            Circle()
+                                                .fill(NeumorphicTheme.primaryOrange)
+                                                .frame(width: 8, height: 8)
+                                                .frame(height: 14)
+                                        } else {
+                                            Circle()
+                                                .fill(isSelected ? NeumorphicTheme.primaryOrange : NeumorphicTheme.textMuted.opacity(0.3))
+                                                .frame(width: 8, height: 8)
+                                                .frame(height: 14)
+                                        }
                                     }
-                                    .frame(width: 48, height: 60)
+                                    .frame(width: 52, height: 62)
                                     .background(
                                         RoundedRectangle(cornerRadius: 14)
                                             .fill(NeumorphicTheme.background)
+                                            .overlay(
+                                                isGymHit ?
+                                                RoundedRectangle(cornerRadius: 14)
+                                                    .stroke(NeumorphicTheme.emeraldGreen.opacity(0.3), lineWidth: 1)
+                                                : nil
+                                            )
                                             .shadow(color: isSelected ? NeumorphicTheme.insetLight : NeumorphicTheme.lightShadow,
                                                     radius: isSelected ? 2 : 4,
                                                     x: isSelected ? 2 : -3,
@@ -142,40 +179,108 @@ public struct WeeklySplitPlannerView: View {
                     }
 
                     // MARK: - Config Card for Selected Day
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Title & Rest Day Toggle
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(selectedDay.rawValue)
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(NeumorphicTheme.textPrimary)
+                    VStack(alignment: .leading, spacing: 18) {
+                        // Title, Rest Day Toggle & Gym Hit Action
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 6) {
+                                        Text(selectedDay.rawValue)
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundStyle(NeumorphicTheme.textPrimary)
 
-                                Text(activeConfig.isRestDay ? "Designated Rest Day" : "Workout Day")
-                                    .font(.caption)
-                                    .foregroundStyle(activeConfig.isRestDay ? Color.blue : NeumorphicTheme.primaryOrange)
-                                    .fontWeight(.semibold)
-                            }
+                                        if selectedDay.isToday {
+                                            Text("TODAY")
+                                                .font(.system(size: 9, weight: .heavy))
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(NeumorphicTheme.primaryOrange)
+                                                .foregroundStyle(.white)
+                                                .clipShape(Capsule())
+                                        } else if selectedDay.isPreviousDayThisWeek {
+                                            Text("PAST")
+                                                .font(.system(size: 9, weight: .bold))
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(Color.secondary.opacity(0.2))
+                                                .foregroundStyle(NeumorphicTheme.textSecondary)
+                                                .clipShape(Capsule())
+                                        }
+                                    }
 
-                            Spacer()
-
-                            // Rest Day Neumorphic Toggle Button
-                            Button {
-                                splitStore.updateConfig(for: selectedDay) { cfg in
-                                    cfg.isRestDay.toggle()
-                                }
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: activeConfig.isRestDay ? "bed.double.fill" : "dumbbell.fill")
-                                    Text(activeConfig.isRestDay ? "Rest Day" : "Active Day")
+                                    Text(activeConfig.isRestDay ? "Designated Rest Day" : "Workout Day")
                                         .font(.caption)
-                                        .fontWeight(.bold)
+                                        .foregroundStyle(activeConfig.isRestDay ? Color.blue : NeumorphicTheme.primaryOrange)
+                                        .fontWeight(.semibold)
                                 }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .foregroundStyle(activeConfig.isRestDay ? Color.blue : NeumorphicTheme.primaryOrange)
+
+                                Spacer()
+
+                                // Gym Hit Toggle Button
+                                Button {
+                                    splitStore.toggleGymHit(for: selectedDay)
+                                } label: {
+                                    HStack(spacing: 5) {
+                                        Image(systemName: activeConfig.isGymHit ? "checkmark.seal.fill" : "circle")
+                                            .font(.caption)
+                                        Text(activeConfig.isGymHit ? "Gym Hit ✓" : "Hit Gym?")
+                                            .font(.caption)
+                                            .fontWeight(.bold)
+                                    }
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 7)
+                                    .foregroundStyle(activeConfig.isGymHit ? NeumorphicTheme.emeraldGreen : NeumorphicTheme.textSecondary)
+                                }
+                                .neumorphicButton(cornerRadius: 10)
+
+                                // Rest Day Toggle Button
+                                Button {
+                                    splitStore.updateConfig(for: selectedDay) { cfg in
+                                        cfg.isRestDay.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName: activeConfig.isRestDay ? "bed.double.fill" : "dumbbell.fill")
+                                        .font(.caption)
+                                        .padding(8)
+                                        .foregroundStyle(activeConfig.isRestDay ? Color.blue : NeumorphicTheme.primaryOrange)
+                                }
+                                .neumorphicButton(cornerRadius: 10)
                             }
-                            .neumorphicButton(cornerRadius: 12)
+
+                            // Historical Gym Attendance Status Banner for Previous Days / Today
+                            if activeConfig.isGymHit {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "trophy.fill")
+                                        .font(.caption)
+                                        .foregroundStyle(NeumorphicTheme.emeraldGreen)
+
+                                    Text(selectedDay.isToday ? "You hit the gym today! Great workout session." : "Marked: You hit the gym on this \(selectedDay.rawValue)! Consistency logged.")
+                                        .font(.caption2)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(NeumorphicTheme.emeraldGreen)
+
+                                    Spacer()
+                                }
+                                .padding(10)
+                                .background(NeumorphicTheme.emeraldGreen.opacity(0.12))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            } else if selectedDay.isPreviousDayThisWeek && !activeConfig.isRestDay {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "info.circle.fill")
+                                        .font(.caption)
+                                        .foregroundStyle(NeumorphicTheme.primaryOrange)
+
+                                    Text("Did you hit the gym on \(selectedDay.rawValue)? Tap 'Hit Gym?' above to mark it.")
+                                        .font(.caption2)
+                                        .foregroundStyle(NeumorphicTheme.textSecondary)
+
+                                    Spacer()
+                                }
+                                .padding(10)
+                                .background(NeumorphicTheme.primaryOrange.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
                         }
 
                         Divider()
@@ -364,7 +469,7 @@ public struct WeeklySplitPlannerView: View {
                     .neumorphicCard(cornerRadius: 22, padding: 20)
                     .padding(.horizontal)
                 }
-                .padding(.bottom, 32)
+                .padding(.bottom, 110)
             }
             .background(NeumorphicTheme.background.ignoresSafeArea())
             .navigationBarHidden(true)

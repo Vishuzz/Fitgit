@@ -141,4 +141,24 @@ struct FitGitTests {
             #expect(dayConfig.reminderMinutesBefore >= 15)
         }
     }
+
+    @Test("Gym attendance marking and previous day detection")
+    func testGymAttendanceTracking() throws {
+        let store = SplitStore()
+        store.applyPresetSplit(.pushPullLegs)
+
+        // Verify Monday gym hit toggle
+        let mondayConfig = store.weeklySchedule.first(where: { $0.day == .monday })
+        #expect(mondayConfig != nil)
+        #expect(mondayConfig?.isGymHit == false)
+
+        store.toggleGymHit(for: .monday)
+        let updatedMonday = store.weeklySchedule.first(where: { $0.day == .monday })
+        #expect(updatedMonday?.isGymHit == true)
+        #expect(updatedMonday?.lastCompletedDate != nil)
+
+        // Day of week chronology
+        #expect(DayOfWeek.monday.weekIndex == 1)
+        #expect(DayOfWeek.sunday.weekIndex == 7)
+    }
 }

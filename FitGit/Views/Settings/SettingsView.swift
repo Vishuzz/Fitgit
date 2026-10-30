@@ -205,7 +205,7 @@ public struct SettingsView: View {
                     .neumorphicCard(cornerRadius: 20, padding: 16)
                     .padding(.horizontal)
                 }
-                .padding(.bottom, 32)
+                .padding(.bottom, 110)
             }
             .background(NeumorphicTheme.background.ignoresSafeArea())
             .navigationBarHidden(true)

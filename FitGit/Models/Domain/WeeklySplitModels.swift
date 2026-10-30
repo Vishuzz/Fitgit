@@ -28,6 +28,29 @@ public enum DayOfWeek: String, CaseIterable, Identifiable, Codable {
         }
     }
 
+    /// Monday = 1 ... Sunday = 7 for chronological week order in fitness splits
+    public var weekIndex: Int {
+        switch self {
+        case .monday: return 1
+        case .tuesday: return 2
+        case .wednesday: return 3
+        case .thursday: return 4
+        case .friday: return 5
+        case .saturday: return 6
+        case .sunday: return 7
+        }
+    }
+
+    /// Whether this day has already passed in the current week
+    public var isPreviousDayThisWeek: Bool {
+        return self.weekIndex < DayOfWeek.current().weekIndex
+    }
+
+    /// Whether this day is today
+    public var isToday: Bool {
+        return self == DayOfWeek.current()
+    }
+
     /// Calendar weekday mapping (Sunday = 1, Monday = 2 ... Saturday = 7)
     public var calendarWeekday: Int {
         switch self {
@@ -65,6 +88,8 @@ public struct DayWorkoutConfig: Identifiable, Codable {
     public var targetMuscles: [MuscleGroupCategory]
     public var routineTitle: String
     public var customExercises: [ExerciseItem]
+    public var isGymHit: Bool
+    public var lastCompletedDate: Date?
 
     public init(
         day: DayOfWeek,
@@ -73,7 +98,9 @@ public struct DayWorkoutConfig: Identifiable, Codable {
         reminderMinutesBefore: Int = 15,
         targetMuscles: [MuscleGroupCategory] = [],
         routineTitle: String = "",
-        customExercises: [ExerciseItem] = []
+        customExercises: [ExerciseItem] = [],
+        isGymHit: Bool = false,
+        lastCompletedDate: Date? = nil
     ) {
         self.day = day
         self.isRestDay = isRestDay
@@ -82,6 +109,25 @@ public struct DayWorkoutConfig: Identifiable, Codable {
         self.targetMuscles = targetMuscles
         self.routineTitle = routineTitle
         self.customExercises = customExercises
+        self.isGymHit = isGymHit
+        self.lastCompletedDate = lastCompletedDate
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case day, isRestDay, workoutTime, reminderMinutesBefore, targetMuscles, routineTitle, customExercises, isGymHit, lastCompletedDate
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.day = try container.decode(DayOfWeek.self, forKey: .day)
+        self.isRestDay = try container.decodeIfPresent(Bool.self, forKey: .isRestDay) ?? false
+        self.workoutTime = try container.decodeIfPresent(Date.self, forKey: .workoutTime) ?? Date()
+        self.reminderMinutesBefore = try container.decodeIfPresent(Int.self, forKey: .reminderMinutesBefore) ?? 15
+        self.targetMuscles = try container.decodeIfPresent([MuscleGroupCategory].self, forKey: .targetMuscles) ?? []
+        self.routineTitle = try container.decodeIfPresent(String.self, forKey: .routineTitle) ?? ""
+        self.customExercises = try container.decodeIfPresent([ExerciseItem].self, forKey: .customExercises) ?? []
+        self.isGymHit = try container.decodeIfPresent(Bool.self, forKey: .isGymHit) ?? false
+        self.lastCompletedDate = try container.decodeIfPresent(Date.self, forKey: .lastCompletedDate)
     }
 
     public var formattedTime: String {

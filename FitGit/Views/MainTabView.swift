@@ -29,64 +29,69 @@ public struct MainTabView: View {
     public init() {}
 
     public var body: some View {
-        ZStack(alignment: .bottom) {
-            // Screen Contents
-            Group {
-                switch selectedTab {
-                case .today:
-                    TodaySplitView()
-                case .split:
-                    WeeklySplitPlannerView()
-                case .exercises:
-                    ExerciseLibraryView()
-                case .settings:
-                    SettingsView()
-                }
+        Group {
+            switch selectedTab {
+            case .today:
+                TodaySplitView()
+            case .split:
+                WeeklySplitPlannerView()
+            case .exercises:
+                ExerciseLibraryView()
+            case .settings:
+                SettingsView()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            // Custom Neumorphic Bottom Tab Bar
-            HStack(spacing: 0) {
-                ForEach(MainTab.allCases) { tab in
-                    let isSelected = (selectedTab == tab)
-
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                            selectedTab = tab
-                        }
-                    } label: {
-                        VStack(spacing: 4) {
-                            Image(systemName: tab.iconName)
-                                .font(.system(size: isSelected ? 20 : 18, weight: .bold))
-                                .foregroundStyle(isSelected ? NeumorphicTheme.primaryOrange : NeumorphicTheme.textMuted)
-
-                            Text(tab.rawValue)
-                                .font(.system(size: 10, weight: isSelected ? .bold : .medium))
-                                .foregroundStyle(isSelected ? NeumorphicTheme.primaryOrange : NeumorphicTheme.textMuted)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background(
-                            isSelected ?
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(NeumorphicTheme.background)
-                                .shadow(color: NeumorphicTheme.insetLight, radius: 2, x: 2, y: 2)
-                                .shadow(color: NeumorphicTheme.insetDark, radius: 2, x: -2, y: -2)
-                            : nil
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(NeumorphicTheme.background)
-            .clipShape(RoundedRectangle(cornerRadius: 24))
-            .shadow(color: NeumorphicTheme.lightShadow, radius: 6, x: -3, y: -4)
-            .shadow(color: NeumorphicTheme.darkShadow, radius: 6, x: 3, y: 4)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            flexibleFooterBar
         }
         .background(NeumorphicTheme.background.ignoresSafeArea())
+    }
+
+    // MARK: - Flexible Bottom Tab Bar
+    private var flexibleFooterBar: some View {
+        HStack(spacing: 0) {
+            ForEach(MainTab.allCases) { tab in
+                let isSelected = (selectedTab == tab)
+
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                        selectedTab = tab
+                    }
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: tab.iconName)
+                            .font(.system(size: isSelected ? 19 : 17, weight: .bold))
+                            .foregroundStyle(isSelected ? NeumorphicTheme.primaryOrange : NeumorphicTheme.textMuted)
+
+                        Text(tab.rawValue)
+                            .font(.system(size: 10, weight: isSelected ? .bold : .medium))
+                            .foregroundStyle(isSelected ? NeumorphicTheme.primaryOrange : NeumorphicTheme.textMuted)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(
+                        isSelected ?
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(NeumorphicTheme.background)
+                            .shadow(color: NeumorphicTheme.insetLight, radius: 2, x: 2, y: 2)
+                            .shadow(color: NeumorphicTheme.insetDark, radius: 2, x: -2, y: -2)
+                        : nil
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 22)
+                .fill(NeumorphicTheme.background.opacity(0.96))
+                .shadow(color: NeumorphicTheme.lightShadow, radius: 6, x: -3, y: -4)
+                .shadow(color: NeumorphicTheme.darkShadow, radius: 6, x: 3, y: 4)
+        )
+        .padding(.horizontal, 16)
+        .padding(.top, 4)
+        .padding(.bottom, 6)
     }
 }

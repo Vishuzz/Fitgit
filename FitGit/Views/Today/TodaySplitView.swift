@@ -364,13 +364,37 @@ public struct TodaySplitView: View {
                                         .shadow(color: NeumorphicTheme.darkShadow, radius: 3, x: 2, y: 2)
                                     }
                                 }
+
+                                Divider()
+                                    .padding(.vertical, 4)
+
+                                // MARK: - Gym Hit / Session Complete Button
+                                Button {
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                                        splitStore.toggleGymHit(for: todayConfig.day)
+                                    }
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: todayConfig.isGymHit ? "checkmark.seal.fill" : "dumbbell.fill")
+                                            .font(.headline)
+                                        Text(todayConfig.isGymHit ? "Gym Completed Today! ✓" : "Mark Workout Done / Hit Gym")
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                        Spacer()
+                                    }
+                                    .padding(14)
+                                    .foregroundStyle(todayConfig.isGymHit ? .white : NeumorphicTheme.primaryOrange)
+                                    .background(todayConfig.isGymHit ? NeumorphicTheme.emeraldGreen : Color.clear)
+                                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                                }
+                                .neumorphicButton(cornerRadius: 14, accent: todayConfig.isGymHit ? NeumorphicTheme.emeraldGreen : nil)
                             }
                         }
                         .neumorphicCard(cornerRadius: 22, padding: 18)
                         .padding(.horizontal)
                     }
                 }
-                .padding(.bottom, 32)
+                .padding(.bottom, 110)
             }
             .background(NeumorphicTheme.background.ignoresSafeArea())
             .navigationBarHidden(true)

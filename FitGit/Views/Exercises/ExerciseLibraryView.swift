@@ -203,7 +203,7 @@ public struct ExerciseLibraryView: View {
                         }
                     }
                 }
-                .padding(.bottom, 32)
+                .padding(.bottom, 110)
             }
             .background(NeumorphicTheme.background.ignoresSafeArea())
             .navigationBarHidden(true)

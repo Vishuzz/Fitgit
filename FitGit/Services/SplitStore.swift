@@ -25,6 +25,24 @@ public final class SplitStore: ObservableObject {
         return weeklySchedule.first(where: { $0.day == currentDay }) ?? DayWorkoutConfig(day: currentDay)
     }
 
+    public func toggleGymHit(for day: DayOfWeek) {
+        updateConfig(for: day) { cfg in
+            cfg.isGymHit.toggle()
+            if cfg.isGymHit {
+                cfg.lastCompletedDate = Date()
+            }
+        }
+    }
+
+    public func markGymHit(for day: DayOfWeek, isHit: Bool = true) {
+        updateConfig(for: day) { cfg in
+            cfg.isGymHit = isHit
+            if isHit {
+                cfg.lastCompletedDate = Date()
+            }
+        }
+    }
+
     public func updateConfig(for day: DayOfWeek, update: (inout DayWorkoutConfig) -> Void) {
         if let index = weeklySchedule.firstIndex(where: { $0.day == day }) {
             update(&weeklySchedule[index])
