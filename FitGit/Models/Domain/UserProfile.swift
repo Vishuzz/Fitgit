@@ -170,4 +170,16 @@ public struct UserProfile: Codable, Equatable {
             return String(format: "%.1f years in gym", yearsInGym)
         }
     }
+
+    public var shortExperience: String {
+        if yearsInGym < 1.0 {
+            let months = max(1, Int(yearsInGym * 12))
+            return "\(months)m gym"
+        } else if yearsInGym.truncatingRemainder(dividingBy: 1) == 0 {
+            let yrs = Int(yearsInGym)
+            return "\(yrs)y exp"
+        } else {
+            return String(format: "%.1fy exp", yearsInGym)
+        }
+    }
 }

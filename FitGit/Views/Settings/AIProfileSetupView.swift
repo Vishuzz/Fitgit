@@ -702,21 +702,6 @@ public struct AIProfileSetupView: View {
                     }
                     Spacer()
                 }
-
-                Divider()
-
-                // AI Bio
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("AI ATHLETE BIO")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(NeumorphicTheme.textMuted)
-
-                    Text(profile.aiBioSummary)
-                        .font(.subheadline)
-                        .foregroundStyle(NeumorphicTheme.textPrimary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(18)
             .neumorphicCard(cornerRadius: 22)

@@ -47,9 +47,6 @@ public struct SettingsView: View {
                     // MARK: - Athlete Profile Card
                     athleteProfileCard
 
-                    // MARK: - AI Athlete Profile & Assessment Section
-                    aiAthleteProfileSection
-
                     // MARK: - Section 1: HOW YOU USE FITGIT (Activity & Insights)
                     VStack(alignment: .leading, spacing: 12) {
                         sectionHeader("HOW YOU USE FITGIT")
@@ -188,225 +185,117 @@ public struct SettingsView: View {
         }
     }
 
-    // MARK: - Athlete Profile Card (Instagram Account Center Style)
+    // MARK: - Athlete Profile Card (Minimal Clean Style)
     private var athleteProfileCard: some View {
         let p = profileStore.profile
 
-        return VStack(spacing: 12) {
-            HStack(spacing: 16) {
-                // Avatar with Gradient Ring
-                ZStack {
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                colors: [NeumorphicTheme.primaryOrange, NeumorphicTheme.emeraldGreen],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 2.5
-                        )
-                        .frame(width: 58, height: 58)
+        return Button {
+            showingAIProfileSheet = true
+        } label: {
+            VStack(spacing: 12) {
+                HStack(spacing: 14) {
+                    // Clean Avatar with Thin Gradient Ring
+                    ZStack {
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    colors: [NeumorphicTheme.primaryOrange, NeumorphicTheme.emeraldGreen],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                            .frame(width: 48, height: 48)
 
-                    Circle()
-                        .fill(NeumorphicTheme.darkSurface)
-                        .frame(width: 50, height: 50)
-                        .overlay(
-                            Text(p.initials)
-                                .font(.system(size: 18, weight: .bold, design: .rounded))
-                                .foregroundStyle(NeumorphicTheme.primaryOrange)
-                        )
-                }
+                        Circle()
+                            .fill(NeumorphicTheme.darkSurface)
+                            .frame(width: 42, height: 42)
+                            .overlay(
+                                Text(p.initials)
+                                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                                    .foregroundStyle(NeumorphicTheme.primaryOrange)
+                            )
+                    }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
+                    VStack(alignment: .leading, spacing: 3) {
                         Text(p.name)
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundStyle(NeumorphicTheme.textPrimary)
 
-                        if p.isConfiguredWithAI {
-                            Image(systemName: "sparkles")
+                        HStack(spacing: 6) {
+                            Text("@\(p.username)")
+                                .font(.caption)
+                                .foregroundStyle(NeumorphicTheme.textSecondary)
+
+                            Text("•")
                                 .font(.caption2)
-                                .foregroundStyle(NeumorphicTheme.primaryOrange)
+                                .foregroundStyle(NeumorphicTheme.textMuted)
+
+                            Text(p.athleteTier.rawValue)
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(p.athleteTier.badgeColor)
                         }
                     }
 
-                    Text("@\(p.username) • \(p.athleteTier.rawValue)")
-                        .font(.caption)
-                        .foregroundStyle(NeumorphicTheme.textSecondary)
+                    Spacer()
 
-                    HStack(spacing: 6) {
-                        statPill("🏋️‍♂️ \(p.experienceFormatted)", color: NeumorphicTheme.purplePower)
-                        statPill("⚖️ \(String(format: "%.1f", p.weightKg))kg", color: NeumorphicTheme.cyanPulse)
-                    }
-                    .padding(.top, 2)
-                }
-
-                Spacer()
-
-                Button {
-                    showingAIProfileSheet = true
-                } label: {
+                    // Minimal AI Coach Trigger
                     HStack(spacing: 4) {
                         Image(systemName: "sparkles")
+                            .font(.system(size: 10))
                         Text("AI Coach")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .bold))
                     }
-                    .font(.caption2)
-                    .fontWeight(.bold)
                     .foregroundStyle(NeumorphicTheme.primaryOrange)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .background(NeumorphicTheme.darkSurface)
                     .clipShape(Capsule())
                 }
-            }
 
-            // Quick Bio & Targets Banner
-            HStack(spacing: 8) {
-                Image(systemName: "brain.head.profile")
-                    .font(.caption)
-                    .foregroundStyle(NeumorphicTheme.primaryOrange)
-
-                Text(p.aiBioSummary)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(NeumorphicTheme.textSecondary)
-                    .lineLimit(1)
-
-                Spacer()
-
-                Button {
-                    showingAIProfileSheet = true
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(NeumorphicTheme.textMuted)
+                // Minimal Biometric Stats Strip (No Bio, No messy wraps)
+                HStack(spacing: 0) {
+                    minimalStatItem(label: "Weight", value: "\(String(format: "%.0f", p.weightKg)) kg")
+                    minimalDivider
+                    minimalStatItem(label: "Height", value: "\(Int(p.heightCm)) cm")
+                    minimalDivider
+                    minimalStatItem(label: "Gym Exp", value: p.shortExperience)
+                    minimalDivider
+                    minimalStatItem(label: "Protein", value: "\(p.dailyProteinGrams)g")
                 }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .neumorphicConcave(cornerRadius: 12)
-        }
-        .padding(16)
-        .neumorphicCard(cornerRadius: 22)
-        .padding(.horizontal)
-    }
-
-    // MARK: - AI Athlete Profile Section
-    private var aiAthleteProfileSection: some View {
-        let p = profileStore.profile
-
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                sectionHeader("AI ATHLETE PROFILE")
-                Spacer()
-                Button {
-                    showingAIProfileSheet = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "sparkles")
-                        Text("Retake AI Assessment")
-                    }
-                    .font(.caption2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(NeumorphicTheme.primaryOrange)
-                }
-            }
-
-            VStack(spacing: 12) {
-                // Biometrics Row
-                HStack(spacing: 12) {
-                    profileMetricPill(
-                        label: "Age & Experience",
-                        value: "\(p.age)y • \(p.experienceFormatted)",
-                        icon: "figure.walk",
-                        color: NeumorphicTheme.purplePower
-                    )
-
-                    profileMetricPill(
-                        label: "Stature & BMI",
-                        value: "\(String(format: "%.1f", p.weightKg))kg • \(Int(p.heightCm))cm",
-                        icon: "scalemass.fill",
-                        color: NeumorphicTheme.cyanPulse
-                    )
-                }
-
-                // Targets Row
-                HStack(spacing: 12) {
-                    profileMetricPill(
-                        label: "Daily Calories",
-                        value: "\(p.targetCalories) kcal",
-                        icon: "flame.fill",
-                        color: NeumorphicTheme.primaryOrange
-                    )
-
-                    profileMetricPill(
-                        label: "Daily Protein",
-                        value: "\(p.dailyProteinGrams)g (1.5x wt)",
-                        icon: "fork.knife",
-                        color: NeumorphicTheme.emeraldGreen
-                    )
-                }
-
-                // Recommended Split Box
-                HStack(spacing: 12) {
-                    Image(systemName: "calendar.badge.clock")
-                        .font(.title3)
-                        .foregroundStyle(NeumorphicTheme.primaryOrange)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(p.recommendedSplit)
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundStyle(NeumorphicTheme.textPrimary)
-
-                        Text(p.weeklyVolumeGuideline)
-                            .font(.system(size: 10))
-                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                    }
-
-                    Spacer()
-
-                    Button {
-                        showingAIProfileSheet = true
-                    } label: {
-                        Text("Calibrate")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(NeumorphicTheme.primaryOrange)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(NeumorphicTheme.darkSurface)
-                            .clipShape(Capsule())
-                    }
-                }
-                .padding(12)
-                .neumorphicConcave(cornerRadius: 14)
+                .padding(.vertical, 8)
+                .neumorphicConcave(cornerRadius: 12)
             }
             .padding(14)
             .neumorphicCard(cornerRadius: 20)
         }
+        .buttonStyle(.plain)
         .padding(.horizontal)
     }
 
-    private func profileMetricPill(label: String, value: String, icon: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.caption2)
-                    .foregroundStyle(color)
-                Text(label)
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(NeumorphicTheme.textMuted)
-            }
+    private func minimalStatItem(label: String, value: String) -> some View {
+        VStack(spacing: 2) {
             Text(value)
-                .font(.footnote)
-                .fontWeight(.bold)
+                .font(.system(size: 12, weight: .bold, design: .rounded))
                 .foregroundStyle(NeumorphicTheme.textPrimary)
                 .lineLimit(1)
+
+            Text(label)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(NeumorphicTheme.textMuted)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .neumorphicConcave(cornerRadius: 12)
+        .frame(maxWidth: .infinity)
+    }
+
+    private var minimalDivider: some View {
+        Rectangle()
+            .fill(NeumorphicTheme.textMuted.opacity(0.25))
+            .frame(width: 1, height: 18)
     }
 
     // MARK: - Workout Reminders Subsection
