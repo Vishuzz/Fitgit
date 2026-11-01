@@ -11,9 +11,6 @@ public struct SettingsView: View {
     @ObservedObject var splitStore: SplitStore = SplitStore.shared
     @ObservedObject var profileStore: UserProfileStore = UserProfileStore.shared
 
-    @AppStorage("fitgit_haptics_enabled") private var hapticsEnabled: Bool = true
-    @AppStorage("fitgit_sounds_enabled") private var soundsEnabled: Bool = true
-
     @State private var showingTestAlertToast: Bool = false
     @State private var showingFirebaseGuideModal: Bool = false
     @State private var showingMonthlyActivityModal: Bool = false
@@ -84,37 +81,13 @@ public struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         sectionHeader("PREFERENCES & ALERTS")
 
-                            VStack(spacing: 16) {
-                                // Workout Reminders Card
-                                workoutRemindersSubsection
-
-                                Divider()
-
-                                // Sounds & Haptic Feedback Toggle
-                                HStack(spacing: 14) {
-                                    settingIconBox("speaker.wave.2.fill", color: NeumorphicTheme.cyanPulse)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Sounds & Haptic Feedback")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(NeumorphicTheme.textPrimary)
-                                        Text("Vibrate on set completion & timer alarms")
-                                            .font(.caption2)
-                                            .foregroundStyle(NeumorphicTheme.textSecondary)
-                                    }
-
-                                    Spacer()
-
-                                    Toggle("", isOn: $hapticsEnabled)
-                                        .labelsHidden()
-                                        .tint(NeumorphicTheme.primaryOrange)
-                                }
-                                .padding(.horizontal, 10)
-                            }
-                            .neumorphicCard(cornerRadius: 20, padding: 14)
+                        VStack(spacing: 16) {
+                            // Workout Reminders Card
+                            workoutRemindersSubsection
                         }
-                        .padding(.horizontal)
+                        .neumorphicCard(cornerRadius: 20, padding: 14)
+                    }
+                    .padding(.horizontal)
 
                     // MARK: - Section 3: PRIVACY & SYSTEM INFO
                     VStack(alignment: .leading, spacing: 12) {
@@ -227,15 +200,6 @@ public struct SettingsView: View {
                             Text("@\(p.username)")
                                 .font(.caption)
                                 .foregroundStyle(NeumorphicTheme.textSecondary)
-
-                            Text("•")
-                                .font(.caption2)
-                                .foregroundStyle(NeumorphicTheme.textMuted)
-
-                            Text(p.athleteTier.rawValue)
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(p.athleteTier.badgeColor)
                         }
                     }
 
