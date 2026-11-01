@@ -110,7 +110,7 @@ public struct UserProfile: Codable, Equatable {
         athleteTier: AthleteTier = .intermediate,
         maintenanceCalories: Int = 2650,
         targetCalories: Int = 2950,
-        dailyProteinGrams: Int = 160,
+        dailyProteinGrams: Int = 118,
         recommendedSplit: String = "Push-Pull-Legs (PPL) - 6 Days",
         aiBioSummary: String = "24yo Intermediate Lifter • 78.5kg • 2.5 yrs gym experience • Focus on Hypertrophy & Progressive Strength",
         weeklyVolumeGuideline: String = "12-16 weekly sets per major muscle group"

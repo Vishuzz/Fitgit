@@ -341,7 +341,7 @@ public struct SettingsView: View {
 
                     profileMetricPill(
                         label: "Daily Protein",
-                        value: "\(p.dailyProteinGrams)g target",
+                        value: "\(p.dailyProteinGrams)g (1.5x wt)",
                         icon: "fork.knife",
                         color: NeumorphicTheme.emeraldGreen
                     )

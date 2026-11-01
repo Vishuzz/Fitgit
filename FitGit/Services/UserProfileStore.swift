@@ -19,10 +19,14 @@ public final class UserProfileStore: ObservableObject {
 
     public init() {
         if let data = UserDefaults.standard.data(forKey: storageKey),
-           let decoded = try? JSONDecoder().decode(UserProfile.self, from: data) {
+           var decoded = try? JSONDecoder().decode(UserProfile.self, from: data) {
+            // Ensure daily protein target reflects 1.5x body weight
+            decoded.dailyProteinGrams = Int((decoded.weightKg * 1.5).rounded())
             self.profile = decoded
         } else {
-            self.profile = UserProfile()
+            var defaultProfile = UserProfile()
+            defaultProfile.dailyProteinGrams = Int((defaultProfile.weightKg * 1.5).rounded())
+            self.profile = defaultProfile
         }
     }
 
@@ -99,15 +103,8 @@ public final class UserProfileStore: ObservableObject {
             targetCalories = maintenance + 150
         }
 
-        // Protein calculation: 2.0g - 2.2g per kg bodyweight
-        let proteinMultiplier: Double
-        switch goal {
-        case .fatLoss, .recomp:
-            proteinMultiplier = 2.2 // Higher protein for muscle retention during deficit
-        case .hypertrophy, .strength, .athletic:
-            proteinMultiplier = 2.0
-        }
-        let dailyProtein = Int((weightKg * proteinMultiplier).rounded())
+        // Protein calculation: 1.5 times the body weight
+        let dailyProtein = Int((weightKg * 1.5).rounded())
 
         // 4. Workout Split Recommendation
         let recommendedSplit: String
@@ -180,3 +177,4 @@ public final class UserProfileStore: ObservableObject {
         )
     }
 }
+

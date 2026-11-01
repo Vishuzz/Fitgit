@@ -741,7 +741,7 @@ public struct AIProfileSetupView: View {
                     metricStatCard(
                         title: "Daily Protein",
                         value: "\(profile.dailyProteinGrams) g",
-                        subtitle: "2.05g per kg target",
+                        subtitle: "1.5x body weight target",
                         icon: "fork.knife",
                         color: NeumorphicTheme.emeraldGreen
                     )
@@ -993,3 +993,4 @@ public struct AIProfileSetupView: View {
         .neumorphicCard(cornerRadius: 18)
     }
 }
+
