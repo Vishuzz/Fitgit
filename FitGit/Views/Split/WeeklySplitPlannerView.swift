@@ -12,6 +12,7 @@ public struct WeeklySplitPlannerView: View {
     @State private var selectedDay: DayOfWeek = DayOfWeek.current()
     @State private var showingPresetSheet: Bool = false
     @State private var showingSavedToast: Bool = false
+    @State private var isCustomizingMuscles: Bool = false
 
     private var activeConfig: DayWorkoutConfig {
         splitStore.weeklySchedule.first(where: { $0.day == selectedDay }) ?? DayWorkoutConfig(day: selectedDay)
@@ -72,6 +73,7 @@ public struct WeeklySplitPlannerView: View {
                                 Button {
                                     withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                                         selectedDay = day
+                                        isCustomizingMuscles = false
                                     }
                                 } label: {
                                     VStack(spacing: 5) {
@@ -348,58 +350,177 @@ public struct WeeklySplitPlannerView: View {
                                 .padding(.horizontal, 4)
                             }
 
-                            // Muscle Groups Multi-Selector
+                            // Target Muscle Groups (Locked by Default to Programmed Split)
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Text("TARGET MUSCLE GROUPS")
                                         .font(.caption2)
                                         .fontWeight(.bold)
                                         .foregroundStyle(NeumorphicTheme.textMuted)
+
                                     Spacer()
-                                    Text("\(activeConfig.targetMuscles.count) selected")
+
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            isCustomizingMuscles.toggle()
+                                        }
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: isCustomizingMuscles ? "checkmark.circle.fill" : "lock.fill")
+                                                .font(.system(size: 10))
+                                            Text(isCustomizingMuscles ? "Done" : "Programmed (Locked)")
+                                                .font(.system(size: 10, weight: .bold))
+                                        }
+                                        .foregroundStyle(isCustomizingMuscles ? NeumorphicTheme.primaryOrange : NeumorphicTheme.textMuted)
+                                        .padding(.horizontal, 9)
+                                        .padding(.vertical, 5)
+                                        .background(NeumorphicTheme.darkSurface)
+                                        .clipShape(Capsule())
+                                    }
+                                }
+
+                                if isCustomizingMuscles {
+                                    // Customizing Mode: Multi-Selector Grid
+                                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                                        ForEach(MuscleGroupCategory.allCases) { muscle in
+                                            let isTargeted = activeConfig.targetMuscles.contains(muscle)
+
+                                            Button {
+                                                toggleMuscle(muscle, for: selectedDay)
+                                            } label: {
+                                                HStack(spacing: 8) {
+                                                    Circle()
+                                                        .fill(muscle.accentColor)
+                                                        .frame(width: 8, height: 8)
+
+                                                    Text(muscle.rawValue)
+                                                        .font(.caption)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(isTargeted ? NeumorphicTheme.textPrimary : NeumorphicTheme.textSecondary)
+
+                                                    Spacer()
+
+                                                    if isTargeted {
+                                                        Image(systemName: "checkmark")
+                                                            .font(.caption2)
+                                                            .fontWeight(.bold)
+                                                            .foregroundStyle(muscle.accentColor)
+                                                    }
+                                                }
+                                                .padding(10)
+                                                .background(isTargeted ? muscle.accentColor.opacity(0.12) : NeumorphicTheme.background)
+                                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                } else {
+                                    // Locked Mode: Display ONLY the scheduled muscle badges
+                                    if activeConfig.targetMuscles.isEmpty {
+                                        Text("No target muscle groups assigned.")
+                                            .font(.caption)
+                                            .foregroundStyle(NeumorphicTheme.textSecondary)
+                                    } else {
+                                        ScrollView(.horizontal, showsIndicators: false) {
+                                            HStack(spacing: 8) {
+                                                ForEach(activeConfig.targetMuscles) { muscle in
+                                                    HStack(spacing: 6) {
+                                                        Circle()
+                                                            .fill(muscle.accentColor)
+                                                            .frame(width: 8, height: 8)
+
+                                                        Text(muscle.rawValue)
+                                                            .font(.caption)
+                                                            .fontWeight(.bold)
+                                                            .foregroundStyle(NeumorphicTheme.textPrimary)
+                                                    }
+                                                    .padding(.horizontal, 12)
+                                                    .padding(.vertical, 7)
+                                                    .background(muscle.accentColor.opacity(0.12))
+                                                    .clipShape(Capsule())
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Divider()
+
+                            // MARK: - Scheduled Exercises for this Day (Something Useful)
+                            let dayExercises = exercisesForConfig(activeConfig)
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("SCHEDULED EXERCISES")
                                         .font(.caption2)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(NeumorphicTheme.textMuted)
+
+                                    Spacer()
+
+                                    Text("\(dayExercises.count) planned")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
                                         .foregroundStyle(NeumorphicTheme.primaryOrange)
                                 }
 
-                                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                                    ForEach(MuscleGroupCategory.allCases) { muscle in
-                                        let isTargeted = activeConfig.targetMuscles.contains(muscle)
+                                if dayExercises.isEmpty {
+                                    Text("No exercises planned for this day.")
+                                        .font(.caption)
+                                        .foregroundStyle(NeumorphicTheme.textSecondary)
+                                        .padding(.vertical, 8)
+                                } else {
+                                    VStack(spacing: 8) {
+                                        ForEach(Array(dayExercises.enumerated()), id: \.element.id) { index, exercise in
+                                            HStack(spacing: 12) {
+                                                Text("\(index + 1)")
+                                                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                                                    .foregroundStyle(NeumorphicTheme.textMuted)
+                                                    .frame(width: 18)
 
-                                        Button {
-                                            splitStore.updateConfig(for: selectedDay) { cfg in
-                                                if isTargeted {
-                                                    cfg.targetMuscles.removeAll(where: { $0 == muscle })
-                                                } else {
-                                                    cfg.targetMuscles.append(muscle)
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(exercise.name)
+                                                        .font(.subheadline)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(NeumorphicTheme.textPrimary)
+                                                        .lineLimit(1)
+
+                                                    HStack(spacing: 6) {
+                                                        Text(exercise.primaryMuscle.rawValue)
+                                                            .font(.system(size: 10, weight: .bold))
+                                                            .foregroundStyle(exercise.primaryMuscle.accentColor)
+
+                                                        if !exercise.resolvedMusclePart.isEmpty {
+                                                            Text("•")
+                                                                .font(.system(size: 8))
+                                                                .foregroundStyle(NeumorphicTheme.textMuted)
+
+                                                            Text(exercise.resolvedMusclePart)
+                                                                .font(.system(size: 10))
+                                                                .foregroundStyle(NeumorphicTheme.textSecondary)
+                                                        }
+                                                    }
                                                 }
-                                            }
-                                        } label: {
-                                            HStack(spacing: 8) {
-                                                Circle()
-                                                    .fill(muscle.accentColor)
-                                                    .frame(width: 10, height: 10)
-
-                                                Text(muscle.rawValue)
-                                                    .font(.caption)
-                                                    .fontWeight(.semibold)
-                                                    .foregroundStyle(isTargeted ? NeumorphicTheme.textPrimary : NeumorphicTheme.textSecondary)
 
                                                 Spacer()
 
-                                                if isTargeted {
-                                                    Image(systemName: "checkmark")
-                                                        .font(.caption2)
-                                                        .fontWeight(.bold)
-                                                        .foregroundStyle(muscle.accentColor)
+                                                VStack(alignment: .trailing, spacing: 2) {
+                                                    Text("\(exercise.targetSets) sets")
+                                                        .font(.system(size: 11, weight: .bold))
+                                                        .foregroundStyle(NeumorphicTheme.textPrimary)
+
+                                                    Text("\(exercise.targetRepsRange) reps")
+                                                        .font(.system(size: 10))
+                                                        .foregroundStyle(NeumorphicTheme.textSecondary)
                                                 }
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 4)
+                                                .background(NeumorphicTheme.darkSurface)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
                                             }
                                             .padding(10)
-                                            .background(isTargeted ? muscle.accentColor.opacity(0.12) : NeumorphicTheme.background)
-                                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                                            .shadow(color: isTargeted ? Color.clear : NeumorphicTheme.lightShadow, radius: 2, x: -2, y: -2)
-                                            .shadow(color: isTargeted ? Color.clear : NeumorphicTheme.darkShadow, radius: 2, x: 2, y: 2)
+                                            .neumorphicConcave(cornerRadius: 12)
                                         }
-                                        .buttonStyle(.plain)
                                     }
                                 }
                             }
@@ -431,6 +552,37 @@ public struct WeeklySplitPlannerView: View {
                 PresetSplitsSheet { selectedPreset in
                     splitStore.applyPresetSplit(selectedPreset)
                     showingPresetSheet = false
+                }
+            }
+        }
+    }
+
+    private func exercisesForConfig(_ config: DayWorkoutConfig) -> [ExerciseItem] {
+        if !config.customExercises.isEmpty {
+            return config.customExercises
+        }
+        var list: [ExerciseItem] = []
+        for muscle in config.targetMuscles {
+            let exercises = ExerciseLibrary.shared.exercises(for: muscle)
+            if !exercises.isEmpty {
+                list.append(contentsOf: exercises.prefix(2))
+            }
+        }
+        return list
+    }
+
+    private func toggleMuscle(_ muscle: MuscleGroupCategory, for day: DayOfWeek) {
+        splitStore.updateConfig(for: day) { cfg in
+            if cfg.targetMuscles.contains(muscle) {
+                cfg.targetMuscles.removeAll(where: { $0 == muscle })
+                cfg.customExercises.removeAll(where: { $0.primaryMuscle == muscle })
+            } else {
+                cfg.targetMuscles.append(muscle)
+                let newExercises = ExerciseLibrary.shared.exercises(for: muscle).prefix(2)
+                for ex in newExercises {
+                    if !cfg.customExercises.contains(where: { $0.id == ex.id }) {
+                        cfg.customExercises.append(ex)
+                    }
                 }
             }
         }
